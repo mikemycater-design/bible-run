@@ -14,6 +14,33 @@ const COUNTRIES = [
   { code: "PH", name: "Philippines", flag: "🇵🇭" },
 ];
 
+const PLAYER_SESSION_KEY = "bible_run_player";
+
+function loadPlayerSession() {
+  try {
+    const raw = localStorage.getItem(PLAYER_SESSION_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function savePlayerSession(player) {
+  try {
+    localStorage.setItem(PLAYER_SESSION_KEY, JSON.stringify(player));
+  } catch {
+    // localStorage kan vara otillgängligt (privat läge etc.) - spelet fungerar ändå, bara utan att komma ihåg inloggningen.
+  }
+}
+
+function clearPlayerSession() {
+  try {
+    localStorage.removeItem(PLAYER_SESSION_KEY);
+  } catch {
+    // se kommentar i savePlayerSession
+  }
+}
+
 async function sb(path, options = {}) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
     ...options,
@@ -198,7 +225,7 @@ function FooterNav({ onSelect }) {
 }
 
 export default function BibleRun() {
-  const [screen, setScreen] = useState("auth");
+  const [screen, setScreen] = useState(() => (loadPlayerSession() ? "ready" : "auth"));
   const [authMode, setAuthMode] = useState("login");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -208,7 +235,7 @@ export default function BibleRun() {
   const [authLoading, setAuthLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const [player, setPlayer] = useState(null);
+  const [player, setPlayer] = useState(loadPlayerSession);
 
   const [questions, setQuestions] = useState([]);
   const [qIndex, setQIndex] = useState(0);
@@ -279,6 +306,7 @@ export default function BibleRun() {
       });
       const playerRow = upserted[0];
       setPlayer(playerRow);
+      savePlayerSession(playerRow);
       setScreen("ready");
       window.history.replaceState(null, "", window.location.pathname + window.location.search);
     } catch (err) {
@@ -305,7 +333,7 @@ export default function BibleRun() {
     const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail);
     if (!emailValid) return setAuthError("Skriv en giltig e-postadress.");
     if (authMode === "signup" && cleanName.length < 2) return setAuthError("Skriv ditt namn (minst 2 tecken).");
-    if (password.length < 4) return setAuthError("Lösenordet måste vara minst 4 tecken.");
+    if (password.length < 8) return setAuthError("Lösenordet måste vara minst 8 tecken.");
 
     setAuthLoading(true);
     try {
@@ -316,12 +344,13 @@ export default function BibleRun() {
             body: JSON.stringify({ p_display_name: cleanName, p_email: cleanEmail, p_country_code: country, p_password: password }),
           });
           setPlayer(created[0]);
+          savePlayerSession(created[0]);
           setScreen("ready");
         } catch (err) {
           if (err.message.includes("email_taken")) {
             setAuthError("Det finns redan ett konto med den e-postadressen. Logga in istället.");
-          } else if (err.message.includes("name_taken")) {
-            setAuthError("Namnet är redan taget. Välj ett annat.");
+          } else if (err.message.includes("password_too_short")) {
+            setAuthError("Lösenordet måste vara minst 8 tecken.");
           } else {
             throw err;
           }
@@ -337,6 +366,7 @@ export default function BibleRun() {
           return;
         }
         setPlayer(rows[0]);
+        savePlayerSession(rows[0]);
         setScreen("ready");
       }
     } catch (err) {
@@ -353,6 +383,7 @@ export default function BibleRun() {
   }
 
   function logout() {
+    clearPlayerSession();
     setPlayer(null);
     setName("");
     setEmail("");
@@ -746,7 +777,7 @@ export default function BibleRun() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && handleAuthSubmit(e)}
-                      placeholder="Minst 4 tecken"
+                      placeholder="Minst 8 tecken"
                       className="h-11 w-full rounded-lg border border-amber-700/50 bg-slate-900/60 pl-10 pr-10 font-sans text-sm text-amber-50 placeholder-slate-500 outline-none transition focus:border-amber-400 focus:ring-1 focus:ring-amber-400/40"
                     />
                     <button
