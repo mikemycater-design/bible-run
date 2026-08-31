@@ -4,44 +4,6 @@ import { Crown, BookOpen, Timer, Trophy, LogOut, Check, X, Medal, Eye, EyeOff, M
 const SUPABASE_URL = "https://mhgnikriicjamwmxdjdg.supabase.co";
 const SUPABASE_KEY = "sb_publishable_qZQ3fm0Xs6uFGEMYg-RoSg_g-PktFsf";
 const QUESTION_SECONDS = 30;
-// Testläge: enkel klientkod som lås för admin-panelen tills riktig adminroll/inloggning byggs.
-// Denna kod syns i källkoden och är INTE säker - måste ersättas med riktig serverbaserad
-// adminautentisering innan appen går skarpt.
-const ADMIN_PASSCODE = "biblerun-admin-2026";
-
-async function generateWithClaude(prompt) {
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "claude-sonnet-4-6",
-      max_tokens: 1000,
-      messages: [{ role: "user", content: prompt }],
-    }),
-  });
-  if (!res.ok) throw new Error(`AI-anropet misslyckades (${res.status})`);
-  const data = await res.json();
-  const text = (data.content || [])
-    .filter((b) => b.type === "text")
-    .map((b) => b.text)
-    .join("");
-  return text;
-}
-
-function parseGeneratedQuestions(text) {
-  let cleaned = text.trim();
-  cleaned = cleaned.replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```\s*$/i, "");
-  const start = cleaned.indexOf("[");
-  const end = cleaned.lastIndexOf("]");
-  if (start === -1 || end === -1) throw new Error("Kunde inte tolka AI-svaret som en frågelista.");
-  const jsonSlice = cleaned.slice(start, end + 1);
-  const parsed = JSON.parse(jsonSlice);
-  if (!Array.isArray(parsed)) throw new Error("AI-svaret var inte en lista.");
-  const required = ["question", "option_a", "option_b", "option_c", "option_d", "correct_option"];
-  return parsed.filter((q) => required.every((k) => typeof q[k] === "string" && q[k].trim().length > 0));
-}
-
-
 
 const COUNTRIES = [
   { code: "SE", name: "Sverige", flag: "🇸🇪" },
@@ -51,11 +13,6 @@ const COUNTRIES = [
   { code: "US", name: "United States", flag: "🇺🇸" },
   { code: "PH", name: "Philippines", flag: "🇵🇭" },
 ];
-
-async function sha256Hex(text) {
-  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
-  return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
-}
 
 async function sb(path, options = {}) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
@@ -251,14 +208,6 @@ export default function BibleRun() {
   const [authLoading, setAuthLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const [resetMode, setResetMode] = useState(false);
-  const [resetEmail, setResetEmail] = useState("");
-  const [resetNewPassword, setResetNewPassword] = useState("");
-  const [resetShowPassword, setResetShowPassword] = useState(false);
-  const [resetError, setResetError] = useState("");
-  const [resetSuccess, setResetSuccess] = useState(false);
-  const [resetLoading, setResetLoading] = useState(false);
-
   const [player, setPlayer] = useState(null);
 
   const [questions, setQuestions] = useState([]);
@@ -290,19 +239,16 @@ export default function BibleRun() {
   const [contactError, setContactError] = useState("");
 
   const [adminAuthed, setAdminAuthed] = useState(false);
+  const [adminPasscode, setAdminPasscode] = useState("");
   const [adminPasscodeInput, setAdminPasscodeInput] = useState("");
   const [showAdminPasscode, setShowAdminPasscode] = useState(false);
   const [adminError, setAdminError] = useState("");
-  const [adminTab, setAdminTab] = useState("generate"); // generate | pending | published
+  const [adminLoginLoading, setAdminLoginLoading] = useState(false);
+  const [adminTab, setAdminTab] = useState("pending"); // pending | published
   const [adminStats, setAdminStats] = useState({ pending: 0, approved: 0, active: 0, total: 0 });
   const [pendingQuestions, setPendingQuestions] = useState([]);
   const [publishedQuestions, setPublishedQuestions] = useState([]);
   const [adminListLoading, setAdminListLoading] = useState(false);
-  const [genLoading, setGenLoading] = useState(false);
-  const [genProgress, setGenProgress] = useState("");
-  const [genError, setGenError] = useState("");
-  const [genRounds, setGenRounds] = useState(6);
-  const genStopRef = useRef(false);
   const [editingId, setEditingId] = useState(null);
   const [editDraft, setEditDraft] = useState(null);
 
@@ -363,12 +309,11 @@ export default function BibleRun() {
 
     setAuthLoading(true);
     try {
-      const hash = await sha256Hex(password);
       if (authMode === "signup") {
         try {
           const created = await sb("rpc/signup_player", {
             method: "POST",
-            body: JSON.stringify({ p_display_name: cleanName, p_email: cleanEmail, p_country_code: country, p_password_hash: hash }),
+            body: JSON.stringify({ p_display_name: cleanName, p_email: cleanEmail, p_country_code: country, p_password: password }),
           });
           setPlayer(created[0]);
           setScreen("ready");
@@ -384,7 +329,7 @@ export default function BibleRun() {
       } else {
         const rows = await sb("rpc/login_player", {
           method: "POST",
-          body: JSON.stringify({ p_email: cleanEmail, p_password_hash: hash }),
+          body: JSON.stringify({ p_email: cleanEmail, p_password: password }),
         });
         if (rows.length === 0) {
           setAuthError("Fel e-post eller lösenord.");
@@ -401,41 +346,10 @@ export default function BibleRun() {
     }
   }
 
-  async function handleResetSubmit(e) {
-    e?.preventDefault?.();
-    setResetError("");
-    const cleanEmail = resetEmail.trim().toLowerCase();
-    const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail);
-    if (!emailValid) return setResetError("Skriv en giltig e-postadress.");
-    if (resetNewPassword.length < 4) return setResetError("Nya lösenordet måste vara minst 4 tecken.");
-
-    setResetLoading(true);
-    try {
-      const hash = await sha256Hex(resetNewPassword);
-      const updated = await sb("rpc/reset_player_password", {
-        method: "POST",
-        body: JSON.stringify({ p_email: cleanEmail, p_new_password_hash: hash }),
-      });
-      if (!updated) {
-        setResetError("Hittade inget konto med den e-postadressen.");
-        setResetLoading(false);
-        return;
-      }
-      setResetSuccess(true);
-    } catch (err) {
-      setResetError(err.message || "Något gick fel. Försök igen.");
-    } finally {
-      setResetLoading(false);
-    }
-  }
-
-  function backToLogin() {
-    setResetMode(false);
-    setResetSuccess(false);
-    setResetEmail("");
-    setResetNewPassword("");
-    setResetError("");
-    setAuthMode("login");
+  function requestPasswordHelp() {
+    setContactMessage("Jag har glömt mitt lösenord och behöver hjälp att komma in på mitt konto igen. Min e-postadress: " + email.trim());
+    setContactEmail(email.trim());
+    openFooterModal("contact");
   }
 
   function logout() {
@@ -444,8 +358,6 @@ export default function BibleRun() {
     setEmail("");
     setPassword("");
     setAuthMode("login");
-    setResetMode(false);
-    setResetSuccess(false);
     setScreen("auth");
   }
 
@@ -505,14 +417,14 @@ export default function BibleRun() {
   async function finishGame(finalScore, finalCorrect) {
     setScreen("result");
     try {
-      await sb("game_sessions", {
+      await sb("rpc/submit_game_result", {
         method: "POST",
         prefer: "return=minimal",
         body: JSON.stringify({
-          player_id: player.id,
-          score: finalScore,
-          correct_count: finalCorrect,
-          total_questions: questions.length,
+          p_player_id: player.id,
+          p_score: finalScore,
+          p_correct_count: finalCorrect,
+          p_total_questions: questions.length,
         }),
       });
     } catch {
@@ -602,128 +514,46 @@ export default function BibleRun() {
     setContactSent(false);
     setContactError("");
     setAdminError("");
-    setGenError("");
   }
 
-  function handleAdminLogin(e) {
+  async function handleAdminLogin(e) {
     e?.preventDefault?.();
-    if (adminPasscodeInput.trim() === ADMIN_PASSCODE) {
+    const code = adminPasscodeInput.trim();
+    setAdminLoginLoading(true);
+    setAdminError("");
+    try {
+      const stats = await sb("rpc/admin_get_stats", {
+        method: "POST",
+        body: JSON.stringify({ p_passcode: code }),
+      });
       setAdminAuthed(true);
-      setAdminError("");
-      loadAdminData();
-    } else {
+      setAdminPasscode(code);
+      setAdminStats(stats[0] || { pending: 0, approved: 0, active: 0, total: 0 });
+      await loadAdminData(code);
+    } catch {
       setAdminError("Fel kod.");
+    } finally {
+      setAdminLoginLoading(false);
     }
   }
 
-  async function loadAdminData() {
+  async function loadAdminData(codeOverride) {
+    const code = codeOverride || adminPasscode;
     setAdminListLoading(true);
     try {
-      const [pending, published, allQ] = await Promise.all([
-        sb("questions?status=eq.pending&order=created_at.desc&select=*"),
-        sb("questions?status=eq.approved&order=sort_order.asc&select=*"),
-        sb("questions?select=id,status,is_active"),
+      const [pending, published, stats] = await Promise.all([
+        sb("rpc/admin_list_pending", { method: "POST", body: JSON.stringify({ p_passcode: code }) }),
+        sb("rpc/admin_list_published", { method: "POST", body: JSON.stringify({ p_passcode: code }) }),
+        sb("rpc/admin_get_stats", { method: "POST", body: JSON.stringify({ p_passcode: code }) }),
       ]);
       setPendingQuestions(pending);
       setPublishedQuestions(published);
-      setAdminStats({
-        pending: allQ.filter((r) => r.status === "pending").length,
-        approved: allQ.filter((r) => r.status === "approved").length,
-        active: allQ.filter((r) => r.status === "approved" && r.is_active).length,
-        total: allQ.length,
-      });
+      setAdminStats(stats[0] || { pending: 0, approved: 0, active: 0, total: 0 });
     } catch (err) {
       setAdminError(err.message || "Kunde inte hämta frågor.");
     } finally {
       setAdminListLoading(false);
     }
-  }
-
-  async function generateQuestionBatch() {
-    setGenLoading(true);
-    setGenError("");
-    setGenProgress("Förbereder…");
-    genStopRef.current = false;
-    try {
-      const existingRows = await sb("questions?select=question&limit=400&order=created_at.desc");
-      const existingTitles = existingRows.map((r) => r.question);
-      const categories = ["Nya testamentet"];
-      let totalInserted = 0;
-      const ROUNDS = Math.min(40, Math.max(1, genRounds));
-      for (let i = 0; i < ROUNDS; i++) {
-        if (genStopRef.current) {
-          setGenProgress(`Stoppat. ${totalInserted} nya frågor väntar på godkännande.`);
-          break;
-        }
-        setGenProgress(`Genererar omgång ${i + 1} av ${ROUNDS} (${totalInserted} sparade hittills)…`);
-        const focusCategory = categories[i % categories.length];
-        const avoidList = existingTitles.slice(0, 60).join(" | ").slice(0, 1800);
-        const prompt = `Du är redaktör för ett bibelkunskaps-quiz. Generera exakt 5 nya flervalsfrågor på svenska om Bibeln.
-
-STRIKT KÄLLREGEL - detta är obligatoriskt:
-- Använd ENDAST innehåll från Nya testamentet, baserat på King James Version, Douay-Rheims, Eastern Orthodox Bible eller Reformationsbibeln (de fyra Nya testamentet-översättningar som är godkända källor för det här quizet)
-- Gamla testamentet är HELT FÖRBJUDET - inga frågor om Moses, Noa, David, Abraham, Adam och Eva, Josef, Jona, Simson, Jeriko, eller något annat ur Gamla testamentet
-- Gissa aldrig fram bibelfakta du är osäker på - hoppa hellre över en fråga än att riskera fel information
-
-Regler:
-- Fyra svarsalternativ (option_a till option_d), endast ett rätt (correct_option: "A"/"B"/"C"/"D")
-- "category" ska alltid vara "Nya testamentet"
-- "difficulty" ska vara "Grundnivå" eller "Medel"
-- "source" ska vara en verklig bok/kapitel-referens ur Nya testamentet, t.ex. "Matteus 5:3-12"
-- "original_text" FÅR ENDAST fyllas i med ett kort ordagrant citat om källan är King James Version eller Douay-Rheims (public domain-översättningar). Annars ska den vara null.
-- "translation" anges bara om original_text finns (t.ex. "King James Version")
-- Variera gärna vinkeln - flera frågor kan utgå från samma person/händelse men fråga om olika saker (vem, var, hur många, vad hände sedan)
-- Undvik dessa redan existerande frågor: ${avoidList}
-
-Svara ENDAST med giltig JSON (ingen markdown, inga kommentarer): en array med exakt 5 objekt som har fälten question, option_a, option_b, option_c, option_d, correct_option, category, difficulty, context, correct_explanation, source, translation, original_text, source_url (translation/original_text/source_url kan vara null).`;
-
-        const raw = await generateWithClaude(prompt);
-        const items = parseGeneratedQuestions(raw).filter((q) => q.category !== "Gamla testamentet");
-        const newOnes = items.filter((q) => !existingTitles.includes(q.question));
-        for (const q of newOnes) {
-          try {
-            await sb("questions", {
-              method: "POST",
-              prefer: "return=minimal",
-              body: JSON.stringify({
-                question: q.question,
-                option_a: q.option_a,
-                option_b: q.option_b,
-                option_c: q.option_c,
-                option_d: q.option_d,
-                correct_option: q.correct_option,
-                category: q.category || focusCategory,
-                difficulty: q.difficulty || "Grundnivå",
-                context: q.context || null,
-                correct_explanation: q.correct_explanation || null,
-                source: q.source || null,
-                translation: q.translation || null,
-                original_text: q.original_text || null,
-                source_url: q.source_url || null,
-                status: "pending",
-                is_active: false,
-                generated_note: "AI-genererad, väntar på godkännande",
-              }),
-            });
-            existingTitles.push(q.question);
-            totalInserted++;
-          } catch {
-            // hoppa över enskilda rader som inte gick att spara, fortsätt med resten
-          }
-        }
-      }
-      if (!genStopRef.current) setGenProgress(`Klart! ${totalInserted} nya frågor väntar på godkännande.`);
-      await loadAdminData();
-    } catch (err) {
-      setGenError(err.message || "Kunde inte generera frågor.");
-      setGenProgress("");
-    } finally {
-      setGenLoading(false);
-    }
-  }
-
-  function stopGeneration() {
-    genStopRef.current = true;
   }
 
   function startEditing(q) {
@@ -738,21 +568,23 @@ Svara ENDAST med giltig JSON (ingen markdown, inga kommentarer): en array med ex
 
   async function saveEdit() {
     try {
-      await sb(`questions?id=eq.${editDraft.id}`, {
-        method: "PATCH",
+      await sb("rpc/admin_update_question", {
+        method: "POST",
         prefer: "return=minimal",
         body: JSON.stringify({
-          question: editDraft.question,
-          option_a: editDraft.option_a,
-          option_b: editDraft.option_b,
-          option_c: editDraft.option_c,
-          option_d: editDraft.option_d,
-          correct_option: editDraft.correct_option,
-          category: editDraft.category,
-          difficulty: editDraft.difficulty,
-          context: editDraft.context,
-          correct_explanation: editDraft.correct_explanation,
-          source: editDraft.source,
+          p_passcode: adminPasscode,
+          p_id: editDraft.id,
+          p_question: editDraft.question,
+          p_option_a: editDraft.option_a,
+          p_option_b: editDraft.option_b,
+          p_option_c: editDraft.option_c,
+          p_option_d: editDraft.option_d,
+          p_correct_option: editDraft.correct_option,
+          p_category: editDraft.category,
+          p_difficulty: editDraft.difficulty,
+          p_context: editDraft.context,
+          p_correct_explanation: editDraft.correct_explanation,
+          p_source: editDraft.source,
         }),
       });
       cancelEditing();
@@ -764,12 +596,10 @@ Svara ENDAST med giltig JSON (ingen markdown, inga kommentarer): en array med ex
 
   async function approveQuestion(id) {
     try {
-      const maxRows = await sb("questions?select=sort_order&order=sort_order.desc&limit=1");
-      const nextOrder = (maxRows[0]?.sort_order || 0) + 1;
-      await sb(`questions?id=eq.${id}`, {
-        method: "PATCH",
+      await sb("rpc/admin_approve_question", {
+        method: "POST",
         prefer: "return=minimal",
-        body: JSON.stringify({ status: "approved", is_active: true, sort_order: nextOrder }),
+        body: JSON.stringify({ p_passcode: adminPasscode, p_id: id }),
       });
       await loadAdminData();
     } catch (err) {
@@ -779,10 +609,10 @@ Svara ENDAST med giltig JSON (ingen markdown, inga kommentarer): en array med ex
 
   async function rejectQuestion(id) {
     try {
-      await sb(`questions?id=eq.${id}`, {
-        method: "PATCH",
+      await sb("rpc/admin_reject_question", {
+        method: "POST",
         prefer: "return=minimal",
-        body: JSON.stringify({ status: "rejected", is_active: false }),
+        body: JSON.stringify({ p_passcode: adminPasscode, p_id: id }),
       });
       await loadAdminData();
     } catch (err) {
@@ -792,10 +622,10 @@ Svara ENDAST med giltig JSON (ingen markdown, inga kommentarer): en array med ex
 
   async function toggleActive(id, current) {
     try {
-      await sb(`questions?id=eq.${id}`, {
-        method: "PATCH",
+      await sb("rpc/admin_toggle_active", {
+        method: "POST",
         prefer: "return=minimal",
-        body: JSON.stringify({ is_active: !current }),
+        body: JSON.stringify({ p_passcode: adminPasscode, p_id: id, p_active: !current }),
       });
       await loadAdminData();
     } catch (err) {
@@ -821,7 +651,7 @@ Svara ENDAST med giltig JSON (ingen markdown, inga kommentarer): en array med ex
           </h1>
         </div>
 
-        {screen === "auth" && !resetMode && (
+        {screen === "auth" && (
           <div className="mx-auto w-full max-w-[560px] overflow-hidden rounded-2xl border border-amber-700/40 bg-slate-950/96 shadow-2xl">
             <div className="px-7 pt-7">
               <h2 className="text-center font-serif text-lg font-semibold text-amber-50">
@@ -902,7 +732,7 @@ Svara ENDAST med giltig JSON (ingen markdown, inga kommentarer): en array med ex
                     {authMode === "login" && (
                       <button
                         type="button"
-                        onClick={() => { setResetMode(true); setResetError(""); setResetSuccess(false); setResetEmail(email); }}
+                        onClick={requestPasswordHelp}
                         className="font-sans text-[11px] text-amber-300/80 hover:text-amber-200"
                       >
                         Glömt lösenord?
@@ -978,77 +808,12 @@ Svara ENDAST med giltig JSON (ingen markdown, inga kommentarer): en array med ex
             <div className="mt-6 flex items-start gap-2 border-t border-amber-800/25 bg-slate-900/40 px-7 py-3.5">
               <ShieldCheck className="mt-0.5 h-3.5 w-3.5 flex-none text-amber-500/70" />
               <p className="font-sans text-[11px] leading-relaxed text-slate-400">
-                Testläge: lösenordet sparas i databasen men utan extra säkerhetslager än. Byts till riktig autentisering när admin-delen byggs.
+                Ditt lösenord hashas och sparas säkert i databasen. Vi ser aldrig ditt lösenord i klartext.
               </p>
             </div>
           </div>
         )}
-        {screen === "auth" && !resetMode && <FooterNav onSelect={openFooterModal} />}
-
-        {screen === "auth" && resetMode && (
-          <div className="mx-auto w-full max-w-[560px] rounded-2xl border border-amber-700/40 bg-slate-950/96 p-6 shadow-2xl">
-            <h2 className="mb-1 text-center font-serif text-lg font-bold">Återställ lösenord</h2>
-            {!resetSuccess ? (
-              <>
-                <p className="mb-4 text-center font-sans text-xs text-slate-400">
-                  Testläge: du kan sätta ett nytt lösenord direkt genom att ange e-postadressen för kontot. Det här stängs igen när riktig autentisering kopplas på.
-                </p>
-                <div className="space-y-3">
-                  <div>
-                    <label className="mb-1 block text-xs font-sans uppercase tracking-wide text-amber-300/80">E-post</label>
-                    <input
-                      type="email"
-                      value={resetEmail}
-                      onChange={(e) => setResetEmail(e.target.value)}
-                      placeholder="din@epost.se"
-                      className="w-full rounded-md border border-amber-700/50 bg-slate-950/70 px-3 py-2 font-sans text-amber-50 placeholder-slate-500 outline-none focus:border-amber-400"
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1 block text-xs font-sans uppercase tracking-wide text-amber-300/80">Nytt lösenord</label>
-                    <div className="relative">
-                      <input
-                        type={resetShowPassword ? "text" : "password"}
-                        value={resetNewPassword}
-                        onChange={(e) => setResetNewPassword(e.target.value)}
-                        onKeyDown={(e) => e.key === "Enter" && handleResetSubmit(e)}
-                        placeholder="Minst 4 tecken"
-                        className="w-full rounded-md border border-amber-700/50 bg-slate-950/70 px-3 py-2 pr-10 font-sans text-amber-50 placeholder-slate-500 outline-none focus:border-amber-400"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setResetShowPassword((s) => !s)}
-                        aria-label={resetShowPassword ? "Dölj lösenord" : "Visa lösenord"}
-                        className="absolute inset-y-0 right-0 flex items-center px-3 text-amber-400/80 hover:text-amber-300"
-                      >
-                        {resetShowPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </button>
-                    </div>
-                  </div>
-
-                  {resetError && <p className="font-sans text-sm text-red-400">{resetError}</p>}
-
-                  <GoldButton type="button" onClick={handleResetSubmit} disabled={resetLoading}>
-                    {resetLoading ? "Ett ögonblick…" : "Sätt nytt lösenord"}
-                  </GoldButton>
-                </div>
-                <button type="button"
-                  onClick={backToLogin}
-                  className="mt-3 w-full text-center font-sans text-xs text-amber-300/80 hover:text-amber-200"
-                >
-                  Tillbaka till inloggning
-                </button>
-              </>
-            ) : (
-              <>
-                <p className="mb-4 text-center font-sans text-sm text-green-400">
-                  Lösenordet är uppdaterat! Du kan nu logga in med det nya lösenordet.
-                </p>
-                <GoldButton onClick={backToLogin}>Till inloggning</GoldButton>
-              </>
-            )}
-          </div>
-        )}
+        {screen === "auth" && <FooterNav onSelect={openFooterModal} />}
 
         {screen === "ready" && player && (
           <div className="mx-auto w-full max-w-[560px] rounded-2xl border border-amber-700/40 bg-slate-950/96 p-6 text-center shadow-2xl">
@@ -1321,7 +1086,7 @@ Svara ENDAST med giltig JSON (ingen markdown, inga kommentarer): en array med ex
           {!adminAuthed ? (
             <div className="space-y-3 font-sans text-sm">
               <p className="text-xs text-slate-400">
-                Testläge: enkel kodlås i klientkoden. Byts till riktig adminroll senare.
+                Adminkoden verifieras mot databasen, inte i klientkoden.
               </p>
               <div className="relative">
                 <input
@@ -1346,7 +1111,9 @@ Svara ENDAST med giltig JSON (ingen markdown, inga kommentarer): en array med ex
                 </button>
               </div>
               {adminError && <p className="rounded-lg border border-red-800/40 bg-red-950/30 px-3 py-2 text-xs text-red-400">{adminError}</p>}
-              <GoldButton type="button" onClick={handleAdminLogin}>Lås upp</GoldButton>
+              <GoldButton type="button" onClick={handleAdminLogin} disabled={adminLoginLoading}>
+                {adminLoginLoading ? "Kontrollerar…" : "Lås upp"}
+              </GoldButton>
             </div>
           ) : (
             <div className="font-sans text-sm">
@@ -1379,51 +1146,15 @@ Svara ENDAST med giltig JSON (ingen markdown, inga kommentarer): en array med ex
                 </div>
               </div>
 
+              <div className="mb-3 rounded-lg border border-amber-700/30 bg-slate-900/40 p-3 text-xs leading-relaxed text-slate-400">
+                Automatisk AI-frågegenerering är avstängd tills en riktig AI-nyckel kopplas på via en säker
+                serverfunktion. Lägg till nya frågor manuellt genom att skriva dem direkt i Supabase tills vidare.
+              </div>
+
               <div className="mb-4 flex rounded-lg border border-amber-700/40 p-1 text-xs">
-                <button type="button" onClick={() => setAdminTab("generate")} className={`flex-1 rounded-md py-1.5 ${adminTab === "generate" ? "bg-amber-500 font-semibold text-slate-950" : "text-amber-200"}`}>Generera</button>
                 <button type="button" onClick={() => setAdminTab("pending")} className={`flex-1 rounded-md py-1.5 ${adminTab === "pending" ? "bg-amber-500 font-semibold text-slate-950" : "text-amber-200"}`}>Att granska ({adminStats.pending})</button>
                 <button type="button" onClick={() => setAdminTab("published")} className={`flex-1 rounded-md py-1.5 ${adminTab === "published" ? "bg-amber-500 font-semibold text-slate-950" : "text-amber-200"}`}>Publicerade ({adminStats.approved})</button>
               </div>
-
-              {adminTab === "generate" && (
-                <div className="space-y-3">
-                  <p className="text-xs leading-relaxed text-slate-400">
-                    Genererar nya frågor med AI baserat på KJV, Douay-Rheims, Eastern Orthodox Bible och
-                    Reformationsbibeln. Frågorna hamnar i "Att granska" och publiceras inte förrän du godkänner dem.
-                    Varje omgång ger ~5 frågor. Kör gärna flera omgångar i rad och avbryt när du vill.
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <label className="text-xs text-amber-300/80">Antal omgångar:</label>
-                    <input
-                      type="number"
-                      min={1}
-                      max={40}
-                      value={genRounds}
-                      onChange={(e) => setGenRounds(Number(e.target.value) || 1)}
-                      disabled={genLoading}
-                      className="h-9 w-20 rounded-lg border border-amber-700/50 bg-slate-900/60 px-2 text-center text-amber-50 outline-none focus:border-amber-400"
-                    />
-                    <span className="text-xs text-slate-500">≈ {genRounds * 5} frågor</span>
-                  </div>
-                  <div className="flex gap-2">
-                    <div className="flex-1">
-                      <GoldButton onClick={generateQuestionBatch} disabled={genLoading}>
-                        {genLoading ? "Genererar…" : "Generera fler frågor"}
-                      </GoldButton>
-                    </div>
-                    {genLoading && (
-                      <button type="button"
-                        onClick={stopGeneration}
-                        className="rounded-lg border border-red-700/50 px-4 text-sm text-red-400 hover:bg-red-950/30"
-                      >
-                        Stoppa
-                      </button>
-                    )}
-                  </div>
-                  {genProgress && <p className="text-center text-xs text-amber-300">{genProgress}</p>}
-                  {genError && <p className="rounded-lg border border-red-800/40 bg-red-950/30 px-3 py-2 text-xs text-red-400">{genError}</p>}
-                </div>
-              )}
 
               {adminTab === "pending" && (
                 <div className="max-h-[50vh] space-y-3 overflow-y-auto">
