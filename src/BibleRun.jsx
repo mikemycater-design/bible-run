@@ -224,9 +224,17 @@ function FooterNav({ onSelect }) {
   );
 }
 
+function getResetTokenFromUrl() {
+  if (typeof window === "undefined") return null;
+  return new URLSearchParams(window.location.search).get("reset_token");
+}
+
 export default function BibleRun() {
-  const [screen, setScreen] = useState(() => (loadPlayerSession() ? "ready" : "auth"));
-  const [authMode, setAuthMode] = useState("login");
+  const [screen, setScreen] = useState(() => {
+    if (getResetTokenFromUrl()) return "resetPassword";
+    return loadPlayerSession() ? "ready" : "auth";
+  });
+  const [authMode, setAuthMode] = useState("login"); // login | signup | forgot
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [country, setCountry] = useState("SE");
@@ -234,6 +242,18 @@ export default function BibleRun() {
   const [authError, setAuthError] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotSent, setForgotSent] = useState(false);
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotError, setForgotError] = useState("");
+
+  const [resetToken] = useState(getResetTokenFromUrl);
+  const [resetNewPassword, setResetNewPassword] = useState("");
+  const [resetShowPassword, setResetShowPassword] = useState(false);
+  const [resetConfirmLoading, setResetConfirmLoading] = useState(false);
+  const [resetConfirmError, setResetConfirmError] = useState("");
+  const [resetConfirmSuccess, setResetConfirmSuccess] = useState(false);
 
   const [player, setPlayer] = useState(loadPlayerSession);
 
@@ -271,12 +291,17 @@ export default function BibleRun() {
   const [showAdminPasscode, setShowAdminPasscode] = useState(false);
   const [adminError, setAdminError] = useState("");
   const [adminLoginLoading, setAdminLoginLoading] = useState(false);
-  const [adminTab, setAdminTab] = useState("pending"); // pending | published | messages
+  const [adminTab, setAdminTab] = useState("pending"); // pending | published | messages | outreach
   const [adminStats, setAdminStats] = useState({ pending: 0, approved: 0, active: 0, total: 0 });
   const [pendingQuestions, setPendingQuestions] = useState([]);
   const [publishedQuestions, setPublishedQuestions] = useState([]);
   const [messages, setMessages] = useState([]);
   const [adminListLoading, setAdminListLoading] = useState(false);
+  const [outreachSegments, setOutreachSegments] = useState([]);
+  const [outreachDomains, setOutreachDomains] = useState([]);
+  const [outreachLoading, setOutreachLoading] = useState(false);
+  const [outreachError, setOutreachError] = useState("");
+  const [outreachLoaded, setOutreachLoaded] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [editDraft, setEditDraft] = useState(null);
 
@@ -377,10 +402,48 @@ export default function BibleRun() {
     }
   }
 
-  function requestPasswordHelp() {
-    setContactMessage("Jag har glömt mitt lösenord och behöver hjälp att komma in på mitt konto igen. Min e-postadress: " + email.trim());
-    setContactEmail(email.trim());
-    openFooterModal("contact");
+  async function handleForgotSubmit(e) {
+    e?.preventDefault?.();
+    setForgotError("");
+    const cleanEmail = forgotEmail.trim().toLowerCase();
+    const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail);
+    if (!emailValid) return setForgotError("Skriv en giltig e-postadress.");
+    setForgotLoading(true);
+    try {
+      await sb("rpc/request_password_reset", {
+        method: "POST",
+        prefer: "return=minimal",
+        body: JSON.stringify({ p_email: cleanEmail }),
+      });
+      setForgotSent(true);
+    } catch (err) {
+      setForgotError(err.message || "Något gick fel. Försök igen.");
+    } finally {
+      setForgotLoading(false);
+    }
+  }
+
+  async function handleResetConfirm(e) {
+    e?.preventDefault?.();
+    setResetConfirmError("");
+    if (resetNewPassword.length < 8) return setResetConfirmError("Lösenordet måste vara minst 8 tecken.");
+    setResetConfirmLoading(true);
+    try {
+      const ok = await sb("rpc/complete_password_reset", {
+        method: "POST",
+        body: JSON.stringify({ p_token: resetToken, p_new_password: resetNewPassword }),
+      });
+      if (!ok) {
+        setResetConfirmError("Länken har gått ut eller är redan använd. Begär en ny återställningslänk.");
+        return;
+      }
+      setResetConfirmSuccess(true);
+      window.history.replaceState(null, "", window.location.pathname);
+    } catch (err) {
+      setResetConfirmError(err.message || "Något gick fel. Försök igen.");
+    } finally {
+      setResetConfirmLoading(false);
+    }
   }
 
   function logout() {
@@ -590,6 +653,32 @@ export default function BibleRun() {
     }
   }
 
+  async function loadOutreachData() {
+    setOutreachLoading(true);
+    setOutreachError("");
+    try {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/admin-outreach`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", apikey: SUPABASE_KEY },
+        body: JSON.stringify({ passcode: adminPasscode }),
+      });
+      if (!res.ok) throw new Error(`Kunde inte hämta kyrko-kontakter (${res.status})`);
+      const data = await res.json();
+      setOutreachSegments(data.segments || []);
+      setOutreachDomains(data.domains || []);
+      setOutreachLoaded(true);
+    } catch (err) {
+      setOutreachError(err.message || "Kunde inte hämta kyrko-kontakter.");
+    } finally {
+      setOutreachLoading(false);
+    }
+  }
+
+  function openOutreachTab() {
+    setAdminTab("outreach");
+    if (!outreachLoaded) loadOutreachData();
+  }
+
   async function toggleMessageHandled(id, current) {
     try {
       await sb("rpc/admin_mark_message_handled", {
@@ -698,7 +787,94 @@ export default function BibleRun() {
           </h1>
         </div>
 
-        {screen === "auth" && (
+        {screen === "resetPassword" && (
+          <div className="mx-auto w-full max-w-[560px] rounded-2xl border border-amber-700/40 bg-slate-950/96 p-6 shadow-2xl">
+            <h2 className="mb-1 text-center font-serif text-lg font-bold">Sätt nytt lösenord</h2>
+            {!resetConfirmSuccess ? (
+              <>
+                <p className="mb-4 text-center font-sans text-xs text-slate-400">
+                  Välj ett nytt lösenord för ditt konto.
+                </p>
+                <div className="space-y-3">
+                  <div>
+                    <label className="mb-1 block text-xs font-sans uppercase tracking-wide text-amber-300/80">Nytt lösenord</label>
+                    <div className="relative">
+                      <input
+                        type={resetShowPassword ? "text" : "password"}
+                        value={resetNewPassword}
+                        onChange={(e) => setResetNewPassword(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && handleResetConfirm(e)}
+                        placeholder="Minst 8 tecken"
+                        className="w-full rounded-md border border-amber-700/50 bg-slate-950/70 px-3 py-2 pr-10 font-sans text-amber-50 placeholder-slate-500 outline-none focus:border-amber-400"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setResetShowPassword((s) => !s)}
+                        aria-label={resetShowPassword ? "Dölj lösenord" : "Visa lösenord"}
+                        className="absolute inset-y-0 right-0 flex items-center px-3 text-amber-400/80 hover:text-amber-300"
+                      >
+                        {resetShowPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+                  {resetConfirmError && <p className="font-sans text-sm text-red-400">{resetConfirmError}</p>}
+                  <GoldButton type="button" onClick={handleResetConfirm} disabled={resetConfirmLoading}>
+                    {resetConfirmLoading ? "Sparar…" : "Sätt nytt lösenord"}
+                  </GoldButton>
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="mb-4 text-center font-sans text-sm text-green-400">
+                  Lösenordet är uppdaterat! Du kan nu logga in med det nya lösenordet.
+                </p>
+                <GoldButton onClick={() => { setScreen("auth"); setAuthMode("login"); }}>Till inloggning</GoldButton>
+              </>
+            )}
+          </div>
+        )}
+
+        {screen === "auth" && authMode === "forgot" && (
+          <div className="mx-auto w-full max-w-[560px] rounded-2xl border border-amber-700/40 bg-slate-950/96 p-6 shadow-2xl">
+            <h2 className="mb-1 text-center font-serif text-lg font-bold">Återställ lösenord</h2>
+            {!forgotSent ? (
+              <>
+                <p className="mb-4 text-center font-sans text-xs text-slate-400">
+                  Skriv din e-postadress så skickar vi en länk för att sätta ett nytt lösenord.
+                </p>
+                <div className="space-y-3">
+                  <div>
+                    <label className="mb-1 block text-xs font-sans uppercase tracking-wide text-amber-300/80">E-post</label>
+                    <input
+                      type="email"
+                      value={forgotEmail}
+                      onChange={(e) => setForgotEmail(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleForgotSubmit(e)}
+                      placeholder="din@epost.se"
+                      className="w-full rounded-md border border-amber-700/50 bg-slate-950/70 px-3 py-2 font-sans text-amber-50 placeholder-slate-500 outline-none focus:border-amber-400"
+                    />
+                  </div>
+                  {forgotError && <p className="font-sans text-sm text-red-400">{forgotError}</p>}
+                  <GoldButton type="button" onClick={handleForgotSubmit} disabled={forgotLoading}>
+                    {forgotLoading ? "Skickar…" : "Skicka återställningslänk"}
+                  </GoldButton>
+                </div>
+              </>
+            ) : (
+              <p className="text-center font-sans text-sm text-green-400">
+                Om ett konto finns med den adressen har vi skickat en länk dit. Kolla din inkorg (och skräppost).
+              </p>
+            )}
+            <button type="button"
+              onClick={() => { setAuthMode("login"); setForgotSent(false); setForgotError(""); }}
+              className="mt-3 w-full text-center font-sans text-xs text-amber-300/80 hover:text-amber-200"
+            >
+              Tillbaka till inloggning
+            </button>
+          </div>
+        )}
+
+        {screen === "auth" && authMode !== "forgot" && (
           <div className="mx-auto w-full max-w-[560px] overflow-hidden rounded-2xl border border-amber-700/40 bg-slate-950/96 shadow-2xl">
             <div className="px-7 pt-7">
               <h2 className="text-center font-serif text-lg font-semibold text-amber-50">
@@ -779,7 +955,7 @@ export default function BibleRun() {
                     {authMode === "login" && (
                       <button
                         type="button"
-                        onClick={requestPasswordHelp}
+                        onClick={() => { setAuthMode("forgot"); setForgotEmail(email); setForgotError(""); setForgotSent(false); }}
                         className="font-sans text-[11px] text-amber-300/80 hover:text-amber-200"
                       >
                         Glömt lösenord?
@@ -1202,6 +1378,7 @@ export default function BibleRun() {
                 <button type="button" onClick={() => setAdminTab("pending")} className={`flex-1 rounded-md py-1.5 ${adminTab === "pending" ? "bg-amber-500 font-semibold text-slate-950" : "text-amber-200"}`}>Att granska ({adminStats.pending})</button>
                 <button type="button" onClick={() => setAdminTab("published")} className={`flex-1 rounded-md py-1.5 ${adminTab === "published" ? "bg-amber-500 font-semibold text-slate-950" : "text-amber-200"}`}>Publicerade ({adminStats.approved})</button>
                 <button type="button" onClick={() => setAdminTab("messages")} className={`flex-1 rounded-md py-1.5 ${adminTab === "messages" ? "bg-amber-500 font-semibold text-slate-950" : "text-amber-200"}`}>Meddelanden ({messages.filter((m) => !m.handled).length})</button>
+                <button type="button" onClick={openOutreachTab} className={`flex-1 rounded-md py-1.5 ${adminTab === "outreach" ? "bg-amber-500 font-semibold text-slate-950" : "text-amber-200"}`}>Kyrko-agent</button>
               </div>
 
               {adminTab === "pending" && (
@@ -1294,6 +1471,48 @@ export default function BibleRun() {
                       </div>
                       <p className="mt-2 whitespace-pre-wrap font-serif text-sm">{m.message}</p>
                       <p className="mt-2 text-[10px] text-slate-500">{new Date(m.created_at).toLocaleString("sv-SE")}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {adminTab === "outreach" && (
+                <div className="max-h-[50vh] space-y-4 overflow-y-auto">
+                  <div className="rounded-lg border border-amber-700/30 bg-slate-900/40 p-3 text-xs leading-relaxed text-slate-400">
+                    Kyrko-kontakter och avsändardomäner hämtas live från Resend. <strong className="text-amber-300">Inget skickas härifrån</strong> —
+                    detta är bara en översikt. Utskick kräver att du godkänner mejltexten och uttryckligen säger "skicka nu" i en separat chatt.
+                  </div>
+
+                  {outreachLoading && <p className="text-center text-xs text-slate-400">Hämtar från Resend…</p>}
+                  {outreachError && <p className="rounded-lg border border-red-800/40 bg-red-950/30 px-3 py-2 text-xs text-red-400">{outreachError}</p>}
+
+                  {!outreachLoading && outreachDomains.length > 0 && (
+                    <div>
+                      <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-amber-400">Avsändardomäner i Resend</p>
+                      <div className="flex flex-wrap gap-2">
+                        {outreachDomains.map((d) => (
+                          <span key={d.name} className={`rounded-full px-2.5 py-1 text-xs ${d.status === "verified" ? "bg-green-900/40 text-green-300" : "bg-slate-700/60 text-slate-300"}`}>
+                            {d.name} · {d.status}
+                          </span>
+                        ))}
+                      </div>
+                      <p className="mt-1 text-[10px] text-slate-500">
+                        biblerun.se är inte med i listan än - inga mejl kan skickas från en @biblerun.se-adress förrän domänen verifieras hos Resend (DNS hos Loopia).
+                      </p>
+                    </div>
+                  )}
+
+                  {!outreachLoading && outreachSegments.map((seg) => (
+                    <div key={seg.id}>
+                      <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-amber-400">{seg.name} ({seg.contacts.length})</p>
+                      <div className="space-y-1">
+                        {seg.contacts.map((c) => (
+                          <div key={c.email} className="flex items-center justify-between rounded-md border border-amber-800/20 bg-slate-900/40 px-3 py-1.5 text-xs">
+                            <span className="text-amber-100">{c.name || "(namnlös)"}</span>
+                            <span className="text-slate-400">{c.email}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   ))}
                 </div>
