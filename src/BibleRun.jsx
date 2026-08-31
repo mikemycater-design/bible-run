@@ -1205,13 +1205,35 @@ export default function BibleRun() {
             {!leaderboardLoading && leaderboard.length === 0 && (
               <p className="text-center font-sans text-sm text-slate-400">Ingen har spelat än. Bli den första!</p>
             )}
+
+            {!leaderboardLoading && leaderboard.length > 0 && (() => {
+              const leader = leaderboard[0];
+              const leaderFlag = COUNTRIES.find((c) => c.code === leader.country_code)?.flag;
+              return (
+                <div className="mb-4 flex flex-col items-center gap-1 rounded-xl border-2 border-amber-400 bg-gradient-to-b from-amber-950/60 to-slate-900/60 px-4 py-4 text-center shadow-lg shadow-amber-900/30">
+                  <Crown className="h-7 w-7 text-amber-300" />
+                  <p className="font-sans text-[10px] font-bold uppercase tracking-widest text-amber-400">I täten</p>
+                  <p className="font-serif text-lg font-bold text-amber-100">{leaderFlag} {leader.display_name}</p>
+                  <p className="font-serif text-2xl font-bold text-amber-400">{leader.best_score} p</p>
+                </div>
+              );
+            })()}
+
             <ol className="space-y-2 font-sans text-sm">
               {leaderboard.map((row, i) => {
                 const c = COUNTRIES.find((c) => c.code === row.country_code);
+                const rank = i + 1;
+                const medalStyle =
+                  rank === 1 ? "border-amber-300 bg-amber-400 text-slate-950"
+                  : rank === 2 ? "border-slate-300 bg-slate-300/90 text-slate-950"
+                  : rank === 3 ? "border-orange-700 bg-orange-700/80 text-white"
+                  : "border-amber-800/30 bg-slate-800 text-amber-300";
                 return (
-                  <li key={row.player_id} className="flex items-center justify-between rounded-md border border-amber-800/30 bg-slate-900/50 px-3 py-2">
+                  <li key={row.player_id} className={`flex items-center justify-between rounded-md border px-3 py-2 ${rank <= 3 ? "border-amber-500/40 bg-slate-900/70" : "border-amber-800/30 bg-slate-900/50"}`}>
                     <span className="flex items-center gap-2">
-                      <span className="w-4 text-amber-400">{i + 1}</span>
+                      <span className={`grid h-6 w-6 flex-none place-content-center rounded-full border text-xs font-bold ${medalStyle}`}>
+                        {rank}
+                      </span>
                       <span>{c?.flag}</span>
                       <span className={row.player_id === player?.id ? "font-bold text-amber-300" : ""}>{row.display_name}</span>
                     </span>
