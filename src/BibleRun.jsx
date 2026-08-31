@@ -42,6 +42,7 @@ function parseGeneratedQuestions(text) {
 }
 
 
+const BG_IMAGE = "data:image/jpeg;base64,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";
 
 const COUNTRIES = [
   { code: "SE", name: "Sverige", flag: "🇸🇪" },
@@ -152,32 +153,24 @@ function FacebookIcon({ className }) {
 
 
 
-function Backdrop({ children }) {
+function Backdrop({ children, showPhoto }) {
   return (
     <div
       className="fixed inset-0 h-screen w-screen overflow-hidden text-amber-50"
       style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
     >
       <LockViewport />
-      {/* Ren, kodbaserad tema-bakgrund - mörk himmel, stjärnor, varmt guldsken.
-          Inget foto, så ingen oskärpa behövs och ingen inbakad text kan läcka igenom. */}
-      <div className="absolute inset-0 bg-slate-950" />
-      <div
-        className="absolute inset-0"
-        style={{
-          background:
-            "radial-gradient(ellipse 80% 60% at 85% 100%, rgba(217,158,52,0.16), transparent 60%), radial-gradient(ellipse 60% 40% at 15% 0%, rgba(217,158,52,0.08), transparent 60%)",
-        }}
-      />
-      <div
-        className="absolute inset-0 opacity-70"
-        style={{
-          backgroundImage:
-            "radial-gradient(1px 1px at 12% 22%, white, transparent), radial-gradient(1px 1px at 68% 14%, white, transparent), radial-gradient(1.5px 1.5px at 32% 48%, white, transparent), radial-gradient(1px 1px at 88% 62%, white, transparent), radial-gradient(1px 1px at 6% 70%, white, transparent), radial-gradient(1.5px 1.5px at 55% 8%, white, transparent), radial-gradient(1px 1px at 78% 36%, white, transparent), radial-gradient(1px 1px at 22% 88%, white, transparent), radial-gradient(1.5px 1.5px at 92% 18%, white, transparent), radial-gradient(1px 1px at 44% 62%, white, transparent)",
-          backgroundRepeat: "repeat",
-          backgroundSize: "420px 420px",
-        }}
-      />
+      {showPhoto ? (
+        <>
+          <div
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            style={{ backgroundImage: `url(${BG_IMAGE})`, backgroundColor: "#020711" }}
+          />
+          <div className="absolute inset-0 bg-slate-950/55" />
+        </>
+      ) : (
+        <div className="absolute inset-0 bg-slate-950" />
+      )}
       <div className="relative flex h-full w-full items-center justify-center overflow-hidden">{children}</div>
     </div>
   );
@@ -810,7 +803,7 @@ Svara ENDAST med giltig JSON (ingen markdown, inga kommentarer): en array med ex
   const correctOption = q ? options.find(([k]) => k === q.correct_option) : null;
 
   return (
-    <Backdrop>
+    <Backdrop showPhoto={screen === "auth"}>
       <div className="mx-auto flex max-h-screen w-full max-w-2xl flex-col justify-center overflow-y-auto px-5 py-6">
         <div className="mb-8 text-center">
           <div className="mb-2 flex justify-center">
