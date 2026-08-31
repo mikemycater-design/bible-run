@@ -14,6 +14,232 @@ const COUNTRIES = [
   { code: "PH", name: "Philippines", flag: "🇵🇭" },
 ];
 
+const LANG_KEY = "bible_run_lang";
+
+const LANGUAGES = [
+  { code: "sv", label: "Svenska", flag: "🇸🇪" },
+  { code: "en", label: "English", flag: "🇬🇧" },
+];
+
+const TRANSLATIONS = {
+  sv: {
+    "auth.title.login": "Välkommen tillbaka",
+    "auth.title.signup": "Skapa ditt konto",
+    "auth.subtitle.login": "Logga in för att fortsätta spela",
+    "auth.subtitle.signup": "Registrera dig för att börja spela",
+    "auth.tab.login": "Logga in",
+    "auth.tab.signup": "Nytt konto",
+    "auth.label.email": "E-post",
+    "auth.placeholder.email": "din@epost.se",
+    "auth.label.name": "Ditt namn",
+    "auth.placeholder.name": "Skriv ditt namn",
+    "auth.label.country": "Välj land",
+    "auth.label.password": "Lösenord",
+    "auth.forgot": "Glömt lösenord?",
+    "auth.placeholder.password": "Minst 8 tecken",
+    "auth.submit.login": "Logga in",
+    "auth.submit.signup": "Skapa konto",
+    "auth.submit.loading": "Ett ögonblick…",
+    "auth.or": "eller fortsätt med",
+    "auth.security_note": "Ditt lösenord hashas och sparas säkert i databasen. Vi ser aldrig ditt lösenord i klartext.",
+    "auth.show_password": "Visa lösenord",
+    "auth.hide_password": "Dölj lösenord",
+    "err.email_invalid": "Skriv en giltig e-postadress.",
+    "err.name_short": "Skriv ditt namn (minst 2 tecken).",
+    "err.password_short": "Lösenordet måste vara minst 8 tecken.",
+    "err.email_taken": "Det finns redan ett konto med den e-postadressen. Logga in istället.",
+    "err.login_failed": "Fel e-post eller lösenord.",
+    "err.generic": "Något gick fel. Försök igen.",
+    "err.oauth_failed": "Inloggningen misslyckades. Försök igen.",
+    "forgot.title": "Återställ lösenord",
+    "forgot.desc": "Skriv din e-postadress så skickar vi en länk för att sätta ett nytt lösenord.",
+    "forgot.submit": "Skicka återställningslänk",
+    "forgot.sending": "Skickar…",
+    "forgot.success": "Om ett konto finns med den adressen har vi skickat en länk dit. Kolla din inkorg (och skräppost).",
+    "forgot.back": "Tillbaka till inloggning",
+    "reset.title": "Sätt nytt lösenord",
+    "reset.desc": "Välj ett nytt lösenord för ditt konto.",
+    "reset.label": "Nytt lösenord",
+    "reset.submit": "Sätt nytt lösenord",
+    "reset.saving": "Sparar…",
+    "reset.success": "Lösenordet är uppdaterat! Du kan nu logga in med det nya lösenordet.",
+    "reset.to_login": "Till inloggning",
+    "reset.expired": "Länken har gått ut eller är redan använd. Begär en ny återställningslänk.",
+    "ready.welcome": "Välkommen, {name}",
+    "ready.title": "Redo att ge dig ut?",
+    "ready.questions_count": "{count} frågor",
+    "ready.seconds_per_q": "30 sek/fråga",
+    "ready.climb": "Klättra i rang",
+    "ready.start": "Starta spelet",
+    "ready.loading": "Laddar frågor…",
+    "ready.no_questions": "Inga frågor publicerade än",
+    "ready.leaderboard_link": "Topplista",
+    "ready.logout": "Logga ut",
+    "ready.err_no_questions": "Inga frågor är publicerade just nu. Försök igen senare.",
+    "ready.err_fetch": "Kunde inte hämta frågor. Försök igen.",
+    "quiz.question_of": "FRÅGA {current} AV {total}",
+    "quiz.context_label": "KONTEXT",
+    "quiz.status.correct": "Rätt! {explanation}",
+    "quiz.status.wrong": "Inte riktigt. Rätt svar är {answer}.",
+    "quiz.status.timeout": "Tiden är slut. Rätt svar är {answer}.",
+    "quiz.status.prompt": "Välj ett svar innan tiden tar slut.",
+    "quiz.source_label": "KÄLLA",
+    "quiz.read_more": "Läs hela texten",
+    "quiz.seconds_short": "SEK",
+    "result.title": "Bra kämpat, {name}!",
+    "result.score_summary": "{correct} av {total} rätt",
+    "result.points_suffix": "p",
+    "result.play_again": "Spela igen",
+    "result.share": "Dela ditt resultat",
+    "result.view_leaderboard": "Se topplistan",
+    "result.share_copied": "Kopierat! Klistra in var du vill dela det.",
+    "result.share_text": "Jag fick {score} poäng ({correct}/{total} rätt) i Bible Run! Klarar du bättre?",
+    "lb.title": "SEGRARLISTAN",
+    "lb.loading": "Hämtar…",
+    "lb.empty": "Ingen har spelat än. Bli den första!",
+    "lb.leading": "I täten",
+    "lb.back": "Tillbaka",
+    "footer.about": "Om oss",
+    "footer.donate": "Skicka en gåva",
+    "footer.contact": "Kontakta oss",
+    "footer.admin": "Admin",
+    "about.title": "Om Bible Run",
+    "about.p1": "Bible Run är ett bibelkunskaps-quiz där du tävlar mot klockan och mot andra spelare från hela världen. Varje fråga bygger på verkliga bibeltexter, med källhänvisning och sammanhang så att du lär dig något på vägen - inte bara gissar.",
+    "about.p2": "Alla frågor granskas och godkänns manuellt innan de publiceras, för att hålla en hög kvalitet på innehållet.",
+    "donate.title": "Skicka en gåva",
+    "donate.p1": "Bible Run drivs ideellt. Vill du stötta driften och fortsatt utveckling är vi tacksamma för det.",
+    "donate.placeholder_title": "Betalningsuppgifter är inte ikopplade ännu.",
+    "donate.placeholder_body": "Den här rutan är en platshållare - ingen betalning kan tas emot här idag. Hör av dig via \"Kontakta oss\" så ordnar vi ett riktigt gåvo-flöde (t.ex. Swish eller kort) tillsammans.",
+    "contact.title": "Kontakta oss",
+    "contact.label.name": "Namn (valfritt)",
+    "contact.label.email": "E-post",
+    "contact.label.message": "Meddelande",
+    "contact.submit": "Skicka meddelande",
+    "contact.sending": "Skickar…",
+    "contact.sent": "Tack! Meddelandet är sparat och vi återkommer till dig.",
+    "contact.err_message": "Skriv ett meddelande.",
+    "contact.err_generic": "Kunde inte skicka meddelandet. Försök igen.",
+  },
+  en: {
+    "auth.title.login": "Welcome back",
+    "auth.title.signup": "Create your account",
+    "auth.subtitle.login": "Log in to keep playing",
+    "auth.subtitle.signup": "Sign up to start playing",
+    "auth.tab.login": "Log in",
+    "auth.tab.signup": "New account",
+    "auth.label.email": "Email",
+    "auth.placeholder.email": "you@example.com",
+    "auth.label.name": "Your name",
+    "auth.placeholder.name": "Enter your name",
+    "auth.label.country": "Choose country",
+    "auth.label.password": "Password",
+    "auth.forgot": "Forgot password?",
+    "auth.placeholder.password": "At least 8 characters",
+    "auth.submit.login": "Log in",
+    "auth.submit.signup": "Create account",
+    "auth.submit.loading": "One moment…",
+    "auth.or": "or continue with",
+    "auth.security_note": "Your password is hashed and stored securely in the database. We never see your password in plain text.",
+    "auth.show_password": "Show password",
+    "auth.hide_password": "Hide password",
+    "err.email_invalid": "Enter a valid email address.",
+    "err.name_short": "Enter your name (at least 2 characters).",
+    "err.password_short": "Password must be at least 8 characters.",
+    "err.email_taken": "An account with that email already exists. Log in instead.",
+    "err.login_failed": "Incorrect email or password.",
+    "err.generic": "Something went wrong. Please try again.",
+    "err.oauth_failed": "Login failed. Please try again.",
+    "forgot.title": "Reset password",
+    "forgot.desc": "Enter your email and we'll send you a link to set a new password.",
+    "forgot.submit": "Send reset link",
+    "forgot.sending": "Sending…",
+    "forgot.success": "If an account exists with that address, we've sent a link there. Check your inbox (and spam folder).",
+    "forgot.back": "Back to login",
+    "reset.title": "Set new password",
+    "reset.desc": "Choose a new password for your account.",
+    "reset.label": "New password",
+    "reset.submit": "Set new password",
+    "reset.saving": "Saving…",
+    "reset.success": "Password updated! You can now log in with your new password.",
+    "reset.to_login": "Go to login",
+    "reset.expired": "This link has expired or was already used. Request a new reset link.",
+    "ready.welcome": "Welcome, {name}",
+    "ready.title": "Ready to set out?",
+    "ready.questions_count": "{count} questions",
+    "ready.seconds_per_q": "30 sec/question",
+    "ready.climb": "Climb the ranks",
+    "ready.start": "Start the game",
+    "ready.loading": "Loading questions…",
+    "ready.no_questions": "No questions published yet",
+    "ready.leaderboard_link": "Leaderboard",
+    "ready.logout": "Log out",
+    "ready.err_no_questions": "No questions are published right now. Try again later.",
+    "ready.err_fetch": "Couldn't load questions. Please try again.",
+    "quiz.question_of": "QUESTION {current} OF {total}",
+    "quiz.context_label": "CONTEXT",
+    "quiz.status.correct": "Correct! {explanation}",
+    "quiz.status.wrong": "Not quite. The correct answer is {answer}.",
+    "quiz.status.timeout": "Time's up. The correct answer is {answer}.",
+    "quiz.status.prompt": "Pick an answer before time runs out.",
+    "quiz.source_label": "SOURCE",
+    "quiz.read_more": "Read the full text",
+    "quiz.seconds_short": "SEC",
+    "result.title": "Well played, {name}!",
+    "result.score_summary": "{correct} of {total} correct",
+    "result.points_suffix": "pts",
+    "result.play_again": "Play again",
+    "result.share": "Share your result",
+    "result.view_leaderboard": "View the leaderboard",
+    "result.share_copied": "Copied! Paste it wherever you'd like to share it.",
+    "result.share_text": "I scored {score} points ({correct}/{total} correct) in Bible Run! Can you beat that?",
+    "lb.title": "LEADERBOARD",
+    "lb.loading": "Loading…",
+    "lb.empty": "Nobody has played yet. Be the first!",
+    "lb.leading": "In the lead",
+    "lb.back": "Back",
+    "footer.about": "About us",
+    "footer.donate": "Send a gift",
+    "footer.contact": "Contact us",
+    "footer.admin": "Admin",
+    "about.title": "About Bible Run",
+    "about.p1": "Bible Run is a Bible knowledge quiz where you race the clock and compete against players from around the world. Every question is grounded in real Bible text, with sourcing and context so you learn something along the way - not just guess.",
+    "about.p2": "Every question is manually reviewed and approved before it's published, to keep the content quality high.",
+    "donate.title": "Send a gift",
+    "donate.p1": "Bible Run is run as a non-profit. If you'd like to support its operation and continued development, we'd be grateful.",
+    "donate.placeholder_title": "Payment isn't connected yet.",
+    "donate.placeholder_body": "This box is a placeholder - no payment can be received here today. Reach out via \"Contact us\" and we'll set up a real donation flow (e.g. card or bank transfer) together.",
+    "contact.title": "Contact us",
+    "contact.label.name": "Name (optional)",
+    "contact.label.email": "Email",
+    "contact.label.message": "Message",
+    "contact.submit": "Send message",
+    "contact.sending": "Sending…",
+    "contact.sent": "Thanks! Your message has been saved and we'll get back to you.",
+    "contact.err_message": "Please write a message.",
+    "contact.err_generic": "Couldn't send the message. Please try again.",
+  },
+};
+
+function translate(lang, key, vars) {
+  let text = TRANSLATIONS[lang]?.[key] ?? TRANSLATIONS.sv[key] ?? key;
+  if (vars) {
+    for (const [k, v] of Object.entries(vars)) {
+      text = text.replaceAll(`{${k}}`, v);
+    }
+  }
+  return text;
+}
+
+function loadLang() {
+  try {
+    const stored = localStorage.getItem(LANG_KEY);
+    if (stored && TRANSLATIONS[stored]) return stored;
+  } catch {
+    // localStorage otillgängligt - kör standardspråk
+  }
+  return "sv";
+}
+
 const PLAYER_SESSION_KEY = "bible_run_player";
 
 function loadPlayerSession() {
@@ -210,16 +436,16 @@ function Modal({ title, onClose, children, wide }) {
   );
 }
 
-function FooterNav({ onSelect }) {
+function FooterNav({ onSelect, t }) {
   return (
     <nav className="mt-5 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 font-sans text-xs text-amber-300/70">
-      <button type="button" onClick={() => onSelect("about")} className="hover:text-amber-200 hover:underline">Om oss</button>
+      <button type="button" onClick={() => onSelect("about")} className="hover:text-amber-200 hover:underline">{t("footer.about")}</button>
       <span className="text-amber-800">·</span>
-      <button type="button" onClick={() => onSelect("donate")} className="hover:text-amber-200 hover:underline">Skicka en gåva</button>
+      <button type="button" onClick={() => onSelect("donate")} className="hover:text-amber-200 hover:underline">{t("footer.donate")}</button>
       <span className="text-amber-800">·</span>
-      <button type="button" onClick={() => onSelect("contact")} className="hover:text-amber-200 hover:underline">Kontakta oss</button>
+      <button type="button" onClick={() => onSelect("contact")} className="hover:text-amber-200 hover:underline">{t("footer.contact")}</button>
       <span className="text-amber-800">·</span>
-      <button type="button" onClick={() => onSelect("admin")} className="hover:text-amber-200 hover:underline">Admin</button>
+      <button type="button" onClick={() => onSelect("admin")} className="hover:text-amber-200 hover:underline">{t("footer.admin")}</button>
     </nav>
   );
 }
@@ -256,6 +482,17 @@ export default function BibleRun() {
   const [resetConfirmSuccess, setResetConfirmSuccess] = useState(false);
 
   const [player, setPlayer] = useState(loadPlayerSession);
+  const [lang, setLang] = useState(loadLang);
+  const t = useCallback((key, vars) => translate(lang, key, vars), [lang]);
+
+  function changeLang(code) {
+    setLang(code);
+    try {
+      localStorage.setItem(LANG_KEY, code);
+    } catch {
+      // se kommentar i savePlayerSession
+    }
+  }
 
   const [questions, setQuestions] = useState([]);
   const [qIndex, setQIndex] = useState(0);
@@ -336,11 +573,11 @@ export default function BibleRun() {
       setScreen("ready");
       window.history.replaceState(null, "", window.location.pathname + window.location.search);
     } catch (err) {
-      setAuthError(err.message || "Inloggningen misslyckades. Försök igen.");
+      setAuthError(err.message || t("err.oauth_failed"));
     } finally {
       setOauthLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     const hash = window.location.hash;
@@ -357,9 +594,9 @@ export default function BibleRun() {
     const cleanName = name.trim();
     const cleanEmail = email.trim().toLowerCase();
     const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail);
-    if (!emailValid) return setAuthError("Skriv en giltig e-postadress.");
-    if (authMode === "signup" && cleanName.length < 2) return setAuthError("Skriv ditt namn (minst 2 tecken).");
-    if (password.length < 8) return setAuthError("Lösenordet måste vara minst 8 tecken.");
+    if (!emailValid) return setAuthError(t("err.email_invalid"));
+    if (authMode === "signup" && cleanName.length < 2) return setAuthError(t("err.name_short"));
+    if (password.length < 8) return setAuthError(t("err.password_short"));
 
     setAuthLoading(true);
     try {
@@ -374,9 +611,9 @@ export default function BibleRun() {
           setScreen("ready");
         } catch (err) {
           if (err.message.includes("email_taken")) {
-            setAuthError("Det finns redan ett konto med den e-postadressen. Logga in istället.");
+            setAuthError(t("err.email_taken"));
           } else if (err.message.includes("password_too_short")) {
-            setAuthError("Lösenordet måste vara minst 8 tecken.");
+            setAuthError(t("err.password_short"));
           } else {
             throw err;
           }
@@ -387,7 +624,7 @@ export default function BibleRun() {
           body: JSON.stringify({ p_email: cleanEmail, p_password: password }),
         });
         if (rows.length === 0) {
-          setAuthError("Fel e-post eller lösenord.");
+          setAuthError(t("err.login_failed"));
           setAuthLoading(false);
           return;
         }
@@ -396,7 +633,7 @@ export default function BibleRun() {
         setScreen("ready");
       }
     } catch (err) {
-      setAuthError(err.message || "Något gick fel. Försök igen.");
+      setAuthError(err.message || t("err.generic"));
     } finally {
       setAuthLoading(false);
     }
@@ -407,7 +644,7 @@ export default function BibleRun() {
     setForgotError("");
     const cleanEmail = forgotEmail.trim().toLowerCase();
     const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail);
-    if (!emailValid) return setForgotError("Skriv en giltig e-postadress.");
+    if (!emailValid) return setForgotError(t("err.email_invalid"));
     setForgotLoading(true);
     try {
       await sb("rpc/request_password_reset", {
@@ -417,7 +654,7 @@ export default function BibleRun() {
       });
       setForgotSent(true);
     } catch (err) {
-      setForgotError(err.message || "Något gick fel. Försök igen.");
+      setForgotError(err.message || t("err.generic"));
     } finally {
       setForgotLoading(false);
     }
@@ -426,7 +663,7 @@ export default function BibleRun() {
   async function handleResetConfirm(e) {
     e?.preventDefault?.();
     setResetConfirmError("");
-    if (resetNewPassword.length < 8) return setResetConfirmError("Lösenordet måste vara minst 8 tecken.");
+    if (resetNewPassword.length < 8) return setResetConfirmError(t("err.password_short"));
     setResetConfirmLoading(true);
     try {
       const ok = await sb("rpc/complete_password_reset", {
@@ -434,13 +671,13 @@ export default function BibleRun() {
         body: JSON.stringify({ p_token: resetToken, p_new_password: resetNewPassword }),
       });
       if (!ok) {
-        setResetConfirmError("Länken har gått ut eller är redan använd. Begär en ny återställningslänk.");
+        setResetConfirmError(t("reset.expired"));
         return;
       }
       setResetConfirmSuccess(true);
       window.history.replaceState(null, "", window.location.pathname);
     } catch (err) {
-      setResetConfirmError(err.message || "Något gick fel. Försök igen.");
+      setResetConfirmError(err.message || t("err.generic"));
     } finally {
       setResetConfirmLoading(false);
     }
@@ -462,7 +699,7 @@ export default function BibleRun() {
     try {
       const qs = await sb("questions?status=eq.approved&is_active=eq.true&order=sort_order.asc&select=*");
       if (qs.length === 0) {
-        setReadyError("Inga frågor är publicerade just nu. Försök igen senare.");
+        setReadyError(t("ready.err_no_questions"));
         setLoadingQuiz(false);
         return;
       }
@@ -475,7 +712,7 @@ export default function BibleRun() {
       setTimeLeft(QUESTION_SECONDS);
       setScreen("quiz");
     } catch (err) {
-      setReadyError(err.message || "Kunde inte hämta frågor. Försök igen.");
+      setReadyError(err.message || t("ready.err_fetch"));
     } finally {
       setLoadingQuiz(false);
     }
@@ -562,8 +799,8 @@ export default function BibleRun() {
     setContactError("");
     const cleanEmail = contactEmail.trim().toLowerCase();
     const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail);
-    if (!emailValid) return setContactError("Skriv en giltig e-postadress.");
-    if (contactMessage.trim().length < 5) return setContactError("Skriv ett meddelande.");
+    if (!emailValid) return setContactError(t("err.email_invalid"));
+    if (contactMessage.trim().length < 5) return setContactError(t("contact.err_message"));
     setContactSending(true);
     try {
       await sb("contact_messages", {
@@ -573,7 +810,7 @@ export default function BibleRun() {
       });
       setContactSent(true);
     } catch (err) {
-      setContactError(err.message || "Kunde inte skicka meddelandet. Försök igen.");
+      setContactError(err.message || t("contact.err_generic"));
     } finally {
       setContactSending(false);
     }
@@ -585,7 +822,7 @@ export default function BibleRun() {
   }
 
   async function shareResult() {
-    const text = `Jag fick ${score} poäng (${correctCount}/${questions.length} rätt) i Bible Run! Klarar du bättre?`;
+    const text = t("result.share_text", { score, correct: correctCount, total: questions.length });
     if (navigator.share) {
       try {
         await navigator.share({ title: "Bible Run", text, url: window.location.href.split("#")[0] });
@@ -596,7 +833,7 @@ export default function BibleRun() {
     }
     try {
       await navigator.clipboard.writeText(`${text} ${window.location.href.split("#")[0]}`);
-      setShareStatus("Kopierat! Klistra in var du vill dela det.");
+      setShareStatus(t("result.share_copied"));
     } catch {
       setShareStatus(text);
     }
@@ -785,32 +1022,45 @@ export default function BibleRun() {
           <h1 className="bg-gradient-to-b from-amber-200 via-amber-400 to-amber-600 bg-clip-text text-5xl font-bold tracking-wide text-transparent">
             BIBLE RUN
           </h1>
+          <div className="mt-2 flex justify-center gap-1.5 font-sans text-xs">
+            {LANGUAGES.map((l) => (
+              <button
+                key={l.code}
+                type="button"
+                onClick={() => changeLang(l.code)}
+                aria-pressed={lang === l.code}
+                className={`rounded-full border px-2.5 py-1 transition ${lang === l.code ? "border-amber-400 bg-amber-500/20 text-amber-200" : "border-amber-800/40 text-amber-300/60 hover:text-amber-200"}`}
+              >
+                {l.flag} {l.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {screen === "resetPassword" && (
           <div className="mx-auto w-full max-w-[560px] rounded-2xl border border-amber-700/40 bg-slate-950/96 p-6 shadow-2xl">
-            <h2 className="mb-1 text-center font-serif text-lg font-bold">Sätt nytt lösenord</h2>
+            <h2 className="mb-1 text-center font-serif text-lg font-bold">{t("reset.title")}</h2>
             {!resetConfirmSuccess ? (
               <>
                 <p className="mb-4 text-center font-sans text-xs text-slate-400">
-                  Välj ett nytt lösenord för ditt konto.
+                  {t("reset.desc")}
                 </p>
                 <div className="space-y-3">
                   <div>
-                    <label className="mb-1 block text-xs font-sans uppercase tracking-wide text-amber-300/80">Nytt lösenord</label>
+                    <label className="mb-1 block text-xs font-sans uppercase tracking-wide text-amber-300/80">{t("reset.label")}</label>
                     <div className="relative">
                       <input
                         type={resetShowPassword ? "text" : "password"}
                         value={resetNewPassword}
                         onChange={(e) => setResetNewPassword(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && handleResetConfirm(e)}
-                        placeholder="Minst 8 tecken"
+                        placeholder={t("auth.placeholder.password")}
                         className="w-full rounded-md border border-amber-700/50 bg-slate-950/70 px-3 py-2 pr-10 font-sans text-amber-50 placeholder-slate-500 outline-none focus:border-amber-400"
                       />
                       <button
                         type="button"
                         onClick={() => setResetShowPassword((s) => !s)}
-                        aria-label={resetShowPassword ? "Dölj lösenord" : "Visa lösenord"}
+                        aria-label={resetShowPassword ? t("auth.hide_password") : t("auth.show_password")}
                         className="absolute inset-y-0 right-0 flex items-center px-3 text-amber-400/80 hover:text-amber-300"
                       >
                         {resetShowPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -819,16 +1069,16 @@ export default function BibleRun() {
                   </div>
                   {resetConfirmError && <p className="font-sans text-sm text-red-400">{resetConfirmError}</p>}
                   <GoldButton type="button" onClick={handleResetConfirm} disabled={resetConfirmLoading}>
-                    {resetConfirmLoading ? "Sparar…" : "Sätt nytt lösenord"}
+                    {resetConfirmLoading ? t("reset.saving") : t("reset.submit")}
                   </GoldButton>
                 </div>
               </>
             ) : (
               <>
                 <p className="mb-4 text-center font-sans text-sm text-green-400">
-                  Lösenordet är uppdaterat! Du kan nu logga in med det nya lösenordet.
+                  {t("reset.success")}
                 </p>
-                <GoldButton onClick={() => { setScreen("auth"); setAuthMode("login"); }}>Till inloggning</GoldButton>
+                <GoldButton onClick={() => { setScreen("auth"); setAuthMode("login"); }}>{t("reset.to_login")}</GoldButton>
               </>
             )}
           </div>
@@ -836,40 +1086,40 @@ export default function BibleRun() {
 
         {screen === "auth" && authMode === "forgot" && (
           <div className="mx-auto w-full max-w-[560px] rounded-2xl border border-amber-700/40 bg-slate-950/96 p-6 shadow-2xl">
-            <h2 className="mb-1 text-center font-serif text-lg font-bold">Återställ lösenord</h2>
+            <h2 className="mb-1 text-center font-serif text-lg font-bold">{t("forgot.title")}</h2>
             {!forgotSent ? (
               <>
                 <p className="mb-4 text-center font-sans text-xs text-slate-400">
-                  Skriv din e-postadress så skickar vi en länk för att sätta ett nytt lösenord.
+                  {t("forgot.desc")}
                 </p>
                 <div className="space-y-3">
                   <div>
-                    <label className="mb-1 block text-xs font-sans uppercase tracking-wide text-amber-300/80">E-post</label>
+                    <label className="mb-1 block text-xs font-sans uppercase tracking-wide text-amber-300/80">{t("auth.label.email")}</label>
                     <input
                       type="email"
                       value={forgotEmail}
                       onChange={(e) => setForgotEmail(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && handleForgotSubmit(e)}
-                      placeholder="din@epost.se"
+                      placeholder={t("auth.placeholder.email")}
                       className="w-full rounded-md border border-amber-700/50 bg-slate-950/70 px-3 py-2 font-sans text-amber-50 placeholder-slate-500 outline-none focus:border-amber-400"
                     />
                   </div>
                   {forgotError && <p className="font-sans text-sm text-red-400">{forgotError}</p>}
                   <GoldButton type="button" onClick={handleForgotSubmit} disabled={forgotLoading}>
-                    {forgotLoading ? "Skickar…" : "Skicka återställningslänk"}
+                    {forgotLoading ? t("forgot.sending") : t("forgot.submit")}
                   </GoldButton>
                 </div>
               </>
             ) : (
               <p className="text-center font-sans text-sm text-green-400">
-                Om ett konto finns med den adressen har vi skickat en länk dit. Kolla din inkorg (och skräppost).
+                {t("forgot.success")}
               </p>
             )}
             <button type="button"
               onClick={() => { setAuthMode("login"); setForgotSent(false); setForgotError(""); }}
               className="mt-3 w-full text-center font-sans text-xs text-amber-300/80 hover:text-amber-200"
             >
-              Tillbaka till inloggning
+              {t("forgot.back")}
             </button>
           </div>
         )}
@@ -878,10 +1128,10 @@ export default function BibleRun() {
           <div className="mx-auto w-full max-w-[560px] overflow-hidden rounded-2xl border border-amber-700/40 bg-slate-950/96 shadow-2xl">
             <div className="px-7 pt-7">
               <h2 className="text-center font-serif text-lg font-semibold text-amber-50">
-                {authMode === "signup" ? "Skapa ditt konto" : "Välkommen tillbaka"}
+                {authMode === "signup" ? t("auth.title.signup") : t("auth.title.login")}
               </h2>
               <p className="mt-1 text-center font-sans text-xs text-slate-400">
-                {authMode === "signup" ? "Registrera dig för att börja spela" : "Logga in för att fortsätta spela"}
+                {authMode === "signup" ? t("auth.subtitle.signup") : t("auth.subtitle.login")}
               </p>
 
               <div className="mt-5 flex rounded-lg border border-amber-700/40 bg-slate-900/40 p-1 text-sm">
@@ -889,26 +1139,26 @@ export default function BibleRun() {
                   className={`flex-1 rounded-md py-1.5 font-sans transition ${authMode === "login" ? "bg-amber-500 text-slate-950 font-semibold shadow" : "text-amber-200 hover:text-amber-100"}`}
                   onClick={() => { setAuthMode("login"); setAuthError(""); }}
                 >
-                  Logga in
+                  {t("auth.tab.login")}
                 </button>
                 <button type="button"
                   className={`flex-1 rounded-md py-1.5 font-sans transition ${authMode === "signup" ? "bg-amber-500 text-slate-950 font-semibold shadow" : "text-amber-200 hover:text-amber-100"}`}
                   onClick={() => { setAuthMode("signup"); setAuthError(""); }}
                 >
-                  Nytt konto
+                  {t("auth.tab.signup")}
                 </button>
               </div>
 
               <div className="mt-5 space-y-4">
                 <div>
-                  <label className="mb-1.5 block font-sans text-[11px] font-semibold uppercase tracking-wider text-amber-300/80">E-post</label>
+                  <label className="mb-1.5 block font-sans text-[11px] font-semibold uppercase tracking-wider text-amber-300/80">{t("auth.label.email")}</label>
                   <div className="relative">
                     <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-amber-500/70" />
                     <input
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="din@epost.se"
+                      placeholder={t("auth.placeholder.email")}
                       className="h-11 w-full rounded-lg border border-amber-700/50 bg-slate-900/60 pl-10 pr-3 font-sans text-sm text-amber-50 placeholder-slate-500 outline-none transition focus:border-amber-400 focus:ring-1 focus:ring-amber-400/40"
                       autoComplete="email"
                     />
@@ -917,13 +1167,13 @@ export default function BibleRun() {
 
                 {authMode === "signup" && (
                   <div>
-                    <label className="mb-1.5 block font-sans text-[11px] font-semibold uppercase tracking-wider text-amber-300/80">Ditt namn</label>
+                    <label className="mb-1.5 block font-sans text-[11px] font-semibold uppercase tracking-wider text-amber-300/80">{t("auth.label.name")}</label>
                     <div className="relative">
                       <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-amber-500/70" />
                       <input
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        placeholder="Skriv ditt namn"
+                        placeholder={t("auth.placeholder.name")}
                         className="h-11 w-full rounded-lg border border-amber-700/50 bg-slate-900/60 pl-10 pr-3 font-sans text-sm text-amber-50 placeholder-slate-500 outline-none transition focus:border-amber-400 focus:ring-1 focus:ring-amber-400/40"
                         maxLength={40}
                       />
@@ -933,7 +1183,7 @@ export default function BibleRun() {
 
                 {authMode === "signup" && (
                   <div>
-                    <label className="mb-1.5 block font-sans text-[11px] font-semibold uppercase tracking-wider text-amber-300/80">Välj land</label>
+                    <label className="mb-1.5 block font-sans text-[11px] font-semibold uppercase tracking-wider text-amber-300/80">{t("auth.label.country")}</label>
                     <div className="relative">
                       <Globe2 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-amber-500/70" />
                       <select
@@ -951,14 +1201,14 @@ export default function BibleRun() {
 
                 <div>
                   <div className="mb-1.5 flex items-center justify-between">
-                    <label className="font-sans text-[11px] font-semibold uppercase tracking-wider text-amber-300/80">Lösenord</label>
+                    <label className="font-sans text-[11px] font-semibold uppercase tracking-wider text-amber-300/80">{t("auth.label.password")}</label>
                     {authMode === "login" && (
                       <button
                         type="button"
                         onClick={() => { setAuthMode("forgot"); setForgotEmail(email); setForgotError(""); setForgotSent(false); }}
                         className="font-sans text-[11px] text-amber-300/80 hover:text-amber-200"
                       >
-                        Glömt lösenord?
+                        {t("auth.forgot")}
                       </button>
                     )}
                   </div>
@@ -969,13 +1219,13 @@ export default function BibleRun() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && handleAuthSubmit(e)}
-                      placeholder="Minst 8 tecken"
+                      placeholder={t("auth.placeholder.password")}
                       className="h-11 w-full rounded-lg border border-amber-700/50 bg-slate-900/60 pl-10 pr-10 font-sans text-sm text-amber-50 placeholder-slate-500 outline-none transition focus:border-amber-400 focus:ring-1 focus:ring-amber-400/40"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword((s) => !s)}
-                      aria-label={showPassword ? "Dölj lösenord" : "Visa lösenord"}
+                      aria-label={showPassword ? t("auth.hide_password") : t("auth.show_password")}
                       className="absolute inset-y-0 right-0 flex items-center px-3 text-amber-400/80 hover:text-amber-300"
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -995,14 +1245,14 @@ export default function BibleRun() {
                   disabled={authLoading}
                   className="flex h-11 w-full items-center justify-center gap-1.5 rounded-lg bg-gradient-to-b from-amber-300 to-amber-500 font-sans text-sm font-bold text-slate-950 shadow-lg shadow-amber-900/40 transition hover:from-amber-200 hover:to-amber-400 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {authLoading ? "Ett ögonblick…" : authMode === "signup" ? "Skapa konto" : "Logga in"}
+                  {authLoading ? t("auth.submit.loading") : authMode === "signup" ? t("auth.submit.signup") : t("auth.submit.login")}
                   {!authLoading && <ChevronRight className="h-4 w-4" />}
                 </button>
               </div>
 
               <div className="my-5 flex items-center gap-3">
                 <div className="h-px flex-1 bg-amber-700/30" />
-                <span className="font-sans text-[10px] font-semibold uppercase tracking-widest text-slate-500">eller fortsätt med</span>
+                <span className="font-sans text-[10px] font-semibold uppercase tracking-widest text-slate-500">{t("auth.or")}</span>
                 <div className="h-px flex-1 bg-amber-700/30" />
               </div>
 
@@ -1031,34 +1281,34 @@ export default function BibleRun() {
             <div className="mt-6 flex items-start gap-2 border-t border-amber-800/25 bg-slate-900/40 px-7 py-3.5">
               <ShieldCheck className="mt-0.5 h-3.5 w-3.5 flex-none text-amber-500/70" />
               <p className="font-sans text-[11px] leading-relaxed text-slate-400">
-                Ditt lösenord hashas och sparas säkert i databasen. Vi ser aldrig ditt lösenord i klartext.
+                {t("auth.security_note")}
               </p>
             </div>
           </div>
         )}
-        {screen === "auth" && <FooterNav onSelect={openFooterModal} />}
+        {screen === "auth" && <FooterNav onSelect={openFooterModal} t={t} />}
 
         {screen === "ready" && player && (
           <div className="mx-auto w-full max-w-[560px] rounded-2xl border border-amber-700/40 bg-slate-950/96 p-6 text-center shadow-2xl">
-            <p className="font-sans text-sm text-amber-300">Välkommen, {player.display_name} {playerCountry?.flag}</p>
+            <p className="font-sans text-sm text-amber-300">{t("ready.welcome", { name: player.display_name })} {playerCountry?.flag}</p>
             <Divider />
-            <h2 className="mb-4 font-serif text-xl font-bold">Redo att ge dig ut?</h2>
+            <h2 className="mb-4 font-serif text-xl font-bold">{t("ready.title")}</h2>
             <div className="mb-6 flex justify-center gap-6 font-sans text-xs text-amber-200">
               <div className="flex flex-col items-center gap-1">
                 <BookOpen className="h-5 w-5 text-amber-400" />
-                {activeQuestionCount ?? "…"} frågor
+                {t("ready.questions_count", { count: activeQuestionCount ?? "…" })}
               </div>
               <div className="flex flex-col items-center gap-1">
                 <Timer className="h-5 w-5 text-amber-400" />
-                30 sek/fråga
+                {t("ready.seconds_per_q")}
               </div>
               <div className="flex flex-col items-center gap-1">
                 <Crown className="h-5 w-5 text-amber-400" />
-                Klättra i rang
+                {t("ready.climb")}
               </div>
             </div>
             <GoldButton onClick={startGame} disabled={loadingQuiz || activeQuestionCount === 0}>
-              {loadingQuiz ? "Laddar frågor…" : activeQuestionCount === 0 ? "Inga frågor publicerade än" : "Starta spelet"}
+              {loadingQuiz ? t("ready.loading") : activeQuestionCount === 0 ? t("ready.no_questions") : t("ready.start")}
             </GoldButton>
             {readyError && (
               <p className="mt-2 rounded-lg border border-red-800/40 bg-red-950/30 px-3 py-2 font-sans text-xs text-red-400">
@@ -1067,22 +1317,22 @@ export default function BibleRun() {
             )}
             <div className="mt-4 flex justify-center gap-4 font-sans text-xs">
               <button type="button" onClick={openLeaderboard} className="flex items-center gap-1 text-amber-300 hover:text-amber-200">
-                <Trophy className="h-3.5 w-3.5" /> Topplista
+                <Trophy className="h-3.5 w-3.5" /> {t("ready.leaderboard_link")}
               </button>
               <button type="button" onClick={logout} className="flex items-center gap-1 text-slate-300 hover:text-slate-200">
-                <LogOut className="h-3.5 w-3.5" /> Logga ut
+                <LogOut className="h-3.5 w-3.5" /> {t("ready.logout")}
               </button>
             </div>
           </div>
         )}
-        {screen === "ready" && <FooterNav onSelect={openFooterModal} />}
+        {screen === "ready" && <FooterNav onSelect={openFooterModal} t={t} />}
 
         {screen === "quiz" && q && (
           <div className="mx-auto w-full max-w-[560px] rounded-2xl border-2 border-amber-600/70 bg-slate-950/92 p-6 shadow-2xl">
             <div className="mb-3 flex items-start justify-between border-b border-amber-700/40 pb-3">
               <div>
                 <p className="font-sans text-xs font-bold tracking-widest text-amber-400">
-                  FRÅGA {qIndex + 1} AV {questions.length}
+                  {t("quiz.question_of", { current: qIndex + 1, total: questions.length })}
                 </p>
                 <p className="mt-1 font-sans text-xs text-slate-400">{q.category} · {q.difficulty}</p>
               </div>
@@ -1092,7 +1342,7 @@ export default function BibleRun() {
                 <strong className={`font-sans text-xl leading-none ${timeLeft <= 10 ? "text-red-400" : "text-amber-300"}`}>
                   {timeLeft}
                 </strong>
-                <span className="font-sans text-[9px] tracking-widest text-slate-400">SEK</span>
+                <span className="font-sans text-[9px] tracking-widest text-slate-400">{t("quiz.seconds_short")}</span>
               </div>
             </div>
 
@@ -1102,7 +1352,7 @@ export default function BibleRun() {
 
             {q.context && (
               <div className="mt-3 rounded-r-md border-l-2 border-amber-500 bg-slate-900/70 px-3 py-2">
-                <span className="font-sans text-[10px] font-bold tracking-widest text-amber-400">KONTEXT</span>
+                <span className="font-sans text-[10px] font-bold tracking-widest text-amber-400">{t("quiz.context_label")}</span>
                 <p className="mt-1 font-sans text-xs leading-relaxed text-slate-300">{q.context}</p>
               </div>
             )}
@@ -1142,24 +1392,24 @@ export default function BibleRun() {
               aria-live="polite"
             >
               {selected === q.correct_option
-                ? `Rätt! ${q.correct_explanation || ""}`
+                ? t("quiz.status.correct", { explanation: q.correct_explanation || "" })
                 : selected
-                ? `Inte riktigt. Rätt svar är ${correctOption?.[1]}.`
+                ? t("quiz.status.wrong", { answer: correctOption?.[1] })
                 : locked
-                ? `Tiden är slut. Rätt svar är ${correctOption?.[1]}.`
-                : "Välj ett svar innan tiden tar slut."}
+                ? t("quiz.status.timeout", { answer: correctOption?.[1] })
+                : t("quiz.status.prompt")}
             </p>
 
             {locked && q.source && (
               <div className="mt-3 border-t border-amber-700/30 pt-2 font-sans text-[10px] text-slate-400">
                 <p>
-                  <span className="font-bold text-amber-400">KÄLLA </span>
+                  <span className="font-bold text-amber-400">{t("quiz.source_label")} </span>
                   {q.source}{q.translation ? ` · ${q.translation}` : ""}
                 </p>
                 {q.original_text && <p className="mt-1 italic text-slate-500">”{q.original_text}”</p>}
                 {q.source_url && (
                   <a href={q.source_url} target="_blank" rel="noreferrer" className="mt-1 inline-block text-amber-400 underline">
-                    Läs hela texten
+                    {t("quiz.read_more")}
                   </a>
                 )}
               </div>
@@ -1170,25 +1420,25 @@ export default function BibleRun() {
         {screen === "result" && (
           <div className="mx-auto w-full max-w-[560px] rounded-2xl border border-amber-700/40 bg-slate-950/96 p-6 text-center shadow-2xl">
             <Trophy className="mx-auto mb-2 h-8 w-8 text-amber-400" />
-            <h2 className="font-serif text-xl font-bold">Bra kämpat, {player?.display_name}!</h2>
+            <h2 className="font-serif text-xl font-bold">{t("result.title", { name: player?.display_name })}</h2>
             <p className="mt-1 font-sans text-sm text-amber-200">
-              {correctCount} av {questions.length} rätt
+              {t("result.score_summary", { correct: correctCount, total: questions.length })}
             </p>
-            <p className="mt-1 font-serif text-3xl font-bold text-amber-400">{score} p</p>
+            <p className="mt-1 font-serif text-3xl font-bold text-amber-400">{score} {t("result.points_suffix")}</p>
             <Divider />
             <div className="space-y-2">
-              <GoldButton onClick={() => setScreen("ready")}>Spela igen</GoldButton>
+              <GoldButton onClick={() => setScreen("ready")}>{t("result.play_again")}</GoldButton>
               <button type="button"
                 onClick={shareResult}
                 className="w-full rounded-lg border border-amber-600/50 py-2.5 font-sans text-sm text-amber-200 hover:bg-amber-900/20"
               >
-                Dela ditt resultat
+                {t("result.share")}
               </button>
               <button type="button"
                 onClick={openLeaderboard}
                 className="w-full rounded-lg border border-amber-600/50 py-2.5 font-sans text-sm text-amber-200 hover:bg-amber-900/20"
               >
-                Se topplistan
+                {t("result.view_leaderboard")}
               </button>
             </div>
             {shareStatus && <p className="mt-2 font-sans text-xs text-amber-300">{shareStatus}</p>}
@@ -1198,12 +1448,12 @@ export default function BibleRun() {
         {screen === "leaderboard" && (
           <div className="mx-auto w-full max-w-[560px] rounded-2xl border border-amber-700/40 bg-slate-950/96 p-6 shadow-2xl">
             <h2 className="mb-1 text-center font-serif text-lg font-bold tracking-wide">
-              <Medal className="mr-1 inline h-5 w-5 text-amber-400" /> SEGRARLISTAN
+              <Medal className="mr-1 inline h-5 w-5 text-amber-400" /> {t("lb.title")}
             </h2>
             <Divider />
-            {leaderboardLoading && <p className="text-center font-sans text-sm text-slate-400">Hämtar…</p>}
+            {leaderboardLoading && <p className="text-center font-sans text-sm text-slate-400">{t("lb.loading")}</p>}
             {!leaderboardLoading && leaderboard.length === 0 && (
-              <p className="text-center font-sans text-sm text-slate-400">Ingen har spelat än. Bli den första!</p>
+              <p className="text-center font-sans text-sm text-slate-400">{t("lb.empty")}</p>
             )}
 
             {!leaderboardLoading && leaderboard.length > 0 && (() => {
@@ -1212,9 +1462,9 @@ export default function BibleRun() {
               return (
                 <div className="mb-4 flex flex-col items-center gap-1 rounded-xl border-2 border-amber-400 bg-gradient-to-b from-amber-950/60 to-slate-900/60 px-4 py-4 text-center shadow-lg shadow-amber-900/30">
                   <Crown className="h-7 w-7 text-amber-300" />
-                  <p className="font-sans text-[10px] font-bold uppercase tracking-widest text-amber-400">I täten</p>
+                  <p className="font-sans text-[10px] font-bold uppercase tracking-widest text-amber-400">{t("lb.leading")}</p>
                   <p className="font-serif text-lg font-bold text-amber-100">{leaderFlag} {leader.display_name}</p>
-                  <p className="font-serif text-2xl font-bold text-amber-400">{leader.best_score} p</p>
+                  <p className="font-serif text-2xl font-bold text-amber-400">{leader.best_score} {t("result.points_suffix")}</p>
                 </div>
               );
             })()}
@@ -1237,7 +1487,7 @@ export default function BibleRun() {
                       <span>{c?.flag}</span>
                       <span className={row.player_id === player?.id ? "font-bold text-amber-300" : ""}>{row.display_name}</span>
                     </span>
-                    <span className="text-amber-400">{row.best_score} p</span>
+                    <span className="text-amber-400">{row.best_score} {t("result.points_suffix")}</span>
                   </li>
                 );
               })}
@@ -1246,51 +1496,39 @@ export default function BibleRun() {
               onClick={() => setScreen(player ? "ready" : "auth")}
               className="mt-4 w-full rounded-lg border border-amber-600/50 py-2.5 font-sans text-sm text-amber-200 hover:bg-amber-900/20"
             >
-              Tillbaka
+              {t("lb.back")}
             </button>
           </div>
         )}
       </div>
 
       {footerModal === "about" && (
-        <Modal title="Om Bible Run" onClose={closeFooterModal}>
+        <Modal title={t("about.title")} onClose={closeFooterModal}>
           <div className="space-y-3 font-sans text-sm leading-relaxed text-slate-300">
-            <p>
-              Bible Run är ett bibelkunskaps-quiz där du tävlar mot klockan och mot andra spelare från hela världen.
-              Varje fråga bygger på verkliga bibeltexter, med källhänvisning och sammanhang så att du lär dig något
-              på vägen - inte bara gissar.
-            </p>
-            <p>
-              Alla frågor granskas och godkänns manuellt innan de publiceras, för att hålla en hög kvalitet på
-              innehållet.
-            </p>
+            <p>{t("about.p1")}</p>
+            <p>{t("about.p2")}</p>
           </div>
         </Modal>
       )}
 
       {footerModal === "donate" && (
-        <Modal title="Skicka en gåva" onClose={closeFooterModal}>
+        <Modal title={t("donate.title")} onClose={closeFooterModal}>
           <div className="space-y-3 font-sans text-sm leading-relaxed text-slate-300">
-            <p>
-              Bible Run drivs ideellt. Vill du stötta driften och fortsatt utveckling är vi tacksamma för det.
-            </p>
+            <p>{t("donate.p1")}</p>
             <div className="rounded-lg border border-amber-700/40 bg-slate-900/50 p-4 text-amber-200">
-              <p className="font-semibold">Betalningsuppgifter är inte ikopplade ännu.</p>
-              <p className="mt-1 text-xs text-slate-400">
-                Den här rutan är en platshållare - ingen betalning kan tas emot här idag. Hör av dig via
-                "Kontakta oss" så ordnar vi ett riktigt gåvo-flöde (t.ex. Swish eller kort) tillsammans.
-              </p>
+              <p className="font-semibold">{t("donate.placeholder_title")}</p>
+              <p className="mt-1 text-xs text-slate-400">{t("donate.placeholder_body")}</p>
             </div>
           </div>
         </Modal>
       )}
 
       {footerModal === "contact" && (
-        <Modal title="Kontakta oss" onClose={closeFooterModal}>
+        <Modal title={t("contact.title")} onClose={closeFooterModal}>
           {!contactSent ? (
             <div className="space-y-3 font-sans text-sm">
               <div>
-                <label className="mb-1 block text-xs uppercase tracking-wide text-amber-300/80">Namn (valfritt)</label>
+                <label className="mb-1 block text-xs uppercase tracking-wide text-amber-300/80">{t("contact.label.name")}</label>
                 <input
                   value={contactName}
                   onChange={(e) => setContactName(e.target.value)}
@@ -1298,7 +1536,7 @@ export default function BibleRun() {
                 />
               </div>
               <div>
-                <label className="mb-1 block text-xs uppercase tracking-wide text-amber-300/80">E-post</label>
+                <label className="mb-1 block text-xs uppercase tracking-wide text-amber-300/80">{t("contact.label.email")}</label>
                 <input
                   type="email"
                   value={contactEmail}
@@ -1307,7 +1545,7 @@ export default function BibleRun() {
                 />
               </div>
               <div>
-                <label className="mb-1 block text-xs uppercase tracking-wide text-amber-300/80">Meddelande</label>
+                <label className="mb-1 block text-xs uppercase tracking-wide text-amber-300/80">{t("contact.label.message")}</label>
                 <textarea
                   value={contactMessage}
                   onChange={(e) => setContactMessage(e.target.value)}
@@ -1317,11 +1555,11 @@ export default function BibleRun() {
               </div>
               {contactError && <p className="rounded-lg border border-red-800/40 bg-red-950/30 px-3 py-2 text-xs text-red-400">{contactError}</p>}
               <GoldButton type="button" onClick={submitContactForm} disabled={contactSending}>
-                {contactSending ? "Skickar…" : "Skicka meddelande"}
+                {contactSending ? t("contact.sending") : t("contact.submit")}
               </GoldButton>
             </div>
           ) : (
-            <p className="font-sans text-sm text-green-400">Tack! Meddelandet är sparat och vi återkommer till dig.</p>
+            <p className="font-sans text-sm text-green-400">{t("contact.sent")}</p>
           )}
         </Modal>
       )}
