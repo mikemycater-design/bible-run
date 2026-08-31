@@ -271,10 +271,11 @@ export default function BibleRun() {
   const [showAdminPasscode, setShowAdminPasscode] = useState(false);
   const [adminError, setAdminError] = useState("");
   const [adminLoginLoading, setAdminLoginLoading] = useState(false);
-  const [adminTab, setAdminTab] = useState("pending"); // pending | published
+  const [adminTab, setAdminTab] = useState("pending"); // pending | published | messages
   const [adminStats, setAdminStats] = useState({ pending: 0, approved: 0, active: 0, total: 0 });
   const [pendingQuestions, setPendingQuestions] = useState([]);
   const [publishedQuestions, setPublishedQuestions] = useState([]);
+  const [messages, setMessages] = useState([]);
   const [adminListLoading, setAdminListLoading] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [editDraft, setEditDraft] = useState(null);
@@ -572,18 +573,33 @@ export default function BibleRun() {
     const code = codeOverride || adminPasscode;
     setAdminListLoading(true);
     try {
-      const [pending, published, stats] = await Promise.all([
+      const [pending, published, stats, msgs] = await Promise.all([
         sb("rpc/admin_list_pending", { method: "POST", body: JSON.stringify({ p_passcode: code }) }),
         sb("rpc/admin_list_published", { method: "POST", body: JSON.stringify({ p_passcode: code }) }),
         sb("rpc/admin_get_stats", { method: "POST", body: JSON.stringify({ p_passcode: code }) }),
+        sb("rpc/admin_list_messages", { method: "POST", body: JSON.stringify({ p_passcode: code }) }),
       ]);
       setPendingQuestions(pending);
       setPublishedQuestions(published);
       setAdminStats(stats[0] || { pending: 0, approved: 0, active: 0, total: 0 });
+      setMessages(msgs);
     } catch (err) {
       setAdminError(err.message || "Kunde inte hämta frågor.");
     } finally {
       setAdminListLoading(false);
+    }
+  }
+
+  async function toggleMessageHandled(id, current) {
+    try {
+      await sb("rpc/admin_mark_message_handled", {
+        method: "POST",
+        prefer: "return=minimal",
+        body: JSON.stringify({ p_passcode: adminPasscode, p_id: id, p_handled: !current }),
+      });
+      await loadAdminData();
+    } catch (err) {
+      setAdminError(err.message || "Kunde inte uppdatera meddelandet.");
     }
   }
 
@@ -1185,6 +1201,7 @@ export default function BibleRun() {
               <div className="mb-4 flex rounded-lg border border-amber-700/40 p-1 text-xs">
                 <button type="button" onClick={() => setAdminTab("pending")} className={`flex-1 rounded-md py-1.5 ${adminTab === "pending" ? "bg-amber-500 font-semibold text-slate-950" : "text-amber-200"}`}>Att granska ({adminStats.pending})</button>
                 <button type="button" onClick={() => setAdminTab("published")} className={`flex-1 rounded-md py-1.5 ${adminTab === "published" ? "bg-amber-500 font-semibold text-slate-950" : "text-amber-200"}`}>Publicerade ({adminStats.approved})</button>
+                <button type="button" onClick={() => setAdminTab("messages")} className={`flex-1 rounded-md py-1.5 ${adminTab === "messages" ? "bg-amber-500 font-semibold text-slate-950" : "text-amber-200"}`}>Meddelanden ({messages.filter((m) => !m.handled).length})</button>
               </div>
 
               {adminTab === "pending" && (
@@ -1250,6 +1267,33 @@ export default function BibleRun() {
                       >
                         {pq.is_active ? "Aktiv" : "Inaktiv"}
                       </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {adminTab === "messages" && (
+                <div className="max-h-[50vh] space-y-3 overflow-y-auto">
+                  {adminListLoading && <p className="text-center text-xs text-slate-400">Laddar…</p>}
+                  {!adminListLoading && messages.length === 0 && (
+                    <p className="text-center text-xs text-slate-400">Inga meddelanden ännu.</p>
+                  )}
+                  {messages.map((m) => (
+                    <div key={m.id} className={`rounded-lg border p-3 ${m.handled ? "border-slate-700/40 bg-slate-900/30 opacity-70" : "border-amber-700/30 bg-slate-900/50"}`}>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="text-xs font-semibold text-amber-300">{m.name || "(inget namn angivet)"}</p>
+                          <p className="text-xs text-slate-400">{m.email}</p>
+                        </div>
+                        <button type="button"
+                          onClick={() => toggleMessageHandled(m.id, m.handled)}
+                          className={`flex-none rounded-full px-3 py-1 text-xs font-semibold ${m.handled ? "bg-slate-700 text-slate-300" : "bg-green-600 text-white"}`}
+                        >
+                          {m.handled ? "Hanterat" : "Markera hanterat"}
+                        </button>
+                      </div>
+                      <p className="mt-2 whitespace-pre-wrap font-serif text-sm">{m.message}</p>
+                      <p className="mt-2 text-[10px] text-slate-500">{new Date(m.created_at).toLocaleString("sv-SE")}</p>
                     </div>
                   ))}
                 </div>
