@@ -4,6 +4,7 @@ import { Crown, BookOpen, Timer, Trophy, LogOut, Check, X, Medal, Eye, EyeOff, M
 const SUPABASE_URL = "https://mhgnikriicjamwmxdjdg.supabase.co";
 const SUPABASE_KEY = "sb_publishable_qZQ3fm0Xs6uFGEMYg-RoSg_g-PktFsf";
 const QUESTION_SECONDS = 30;
+const REVEAL_SECONDS = 6;
 
 const COUNTRIES = [
   { code: "SE", name: "Sverige", flag: "🇸🇪" },
@@ -53,6 +54,37 @@ const COUNTRIES = [
   { code: "TR", name: "Turkey", flag: "🇹🇷" },
   { code: "OTHER", name: "Annat land / Other", flag: "🌍" },
 ];
+
+// Windows renderar inte flagg-emoji (visar bara landskoden som text), så vi använder
+// riktiga flaggbilder istället för att flaggan ska synas på alla plattformar.
+function FlagIcon({ code, className = "" }) {
+  if (!code || code === "OTHER") {
+    return <span className={className}>🌍</span>;
+  }
+  return (
+    <img
+      src={`https://flagcdn.com/24x18/${code.toLowerCase()}.png`}
+      width={20}
+      height={15}
+      alt={code}
+      className={`inline-block flex-none rounded-[2px] align-middle ${className}`}
+      onError={(e) => {
+        e.currentTarget.style.display = "none";
+      }}
+    />
+  );
+}
+
+const LANG_TO_COUNTRY = {
+  en: "gb", sv: "se", no: "no", da: "dk", fi: "fi", es: "es",
+  pt: "pt", fr: "fr", de: "de", tl: "ph", ko: "kr", th: "th",
+};
+
+const LEVEL_SCORE_STEP = 500;
+
+function levelFromScore(totalScore) {
+  return Math.floor((totalScore || 0) / LEVEL_SCORE_STEP) + 1;
+}
 
 const LANG_KEY = "bible_run_lang";
 
@@ -120,6 +152,7 @@ const TRANSLATIONS = {
     "ready.questions_count": "{count} frågor",
     "ready.seconds_per_q": "30 sek/fråga",
     "ready.climb": "Klättra i rang",
+    "ready.level": "Nivå {level}",
     "ready.start": "Starta spelet",
     "ready.loading": "Laddar frågor…",
     "ready.no_questions": "Inga frågor publicerade än",
@@ -135,6 +168,7 @@ const TRANSLATIONS = {
     "quiz.status.prompt": "Välj ett svar innan tiden tar slut.",
     "quiz.source_label": "KÄLLA",
     "quiz.read_more": "Läs hela texten",
+    "quiz.next_in": "Nästa fråga om {seconds}s…",
     "quiz.seconds_short": "SEK",
     "result.title": "Bra kämpat, {name}!",
     "result.score_summary": "{correct} av {total} rätt",
@@ -218,6 +252,7 @@ const TRANSLATIONS = {
     "ready.questions_count": "{count} questions",
     "ready.seconds_per_q": "30 sec/question",
     "ready.climb": "Climb the ranks",
+    "ready.level": "Level {level}",
     "ready.start": "Start the game",
     "ready.loading": "Loading questions…",
     "ready.no_questions": "No questions published yet",
@@ -233,6 +268,7 @@ const TRANSLATIONS = {
     "quiz.status.prompt": "Pick an answer before time runs out.",
     "quiz.source_label": "SOURCE",
     "quiz.read_more": "Read the full text",
+    "quiz.next_in": "Next question in {seconds}s…",
     "quiz.seconds_short": "SEC",
     "result.title": "Well played, {name}!",
     "result.score_summary": "{correct} of {total} correct",
@@ -316,6 +352,7 @@ const TRANSLATIONS = {
     "ready.questions_count": "{count} spørsmål",
     "ready.seconds_per_q": "30 sek/spørsmål",
     "ready.climb": "Klatre i rang",
+    "ready.level": "Nivå {level}",
     "ready.start": "Start spillet",
     "ready.loading": "Laster spørsmål…",
     "ready.no_questions": "Ingen spørsmål publisert ennå",
@@ -331,6 +368,7 @@ const TRANSLATIONS = {
     "quiz.status.prompt": "Velg et svar før tiden går ut.",
     "quiz.source_label": "KILDE",
     "quiz.read_more": "Les hele teksten",
+    "quiz.next_in": "Neste spørsmål om {seconds}s…",
     "quiz.seconds_short": "SEK",
     "result.title": "Godt kjempet, {name}!",
     "result.score_summary": "{correct} av {total} riktige",
@@ -414,6 +452,7 @@ const TRANSLATIONS = {
     "ready.questions_count": "{count} spørgsmål",
     "ready.seconds_per_q": "30 sek/spørgsmål",
     "ready.climb": "Klatre i rang",
+    "ready.level": "Niveau {level}",
     "ready.start": "Start spillet",
     "ready.loading": "Indlæser spørgsmål…",
     "ready.no_questions": "Ingen spørgsmål udgivet endnu",
@@ -429,6 +468,7 @@ const TRANSLATIONS = {
     "quiz.status.prompt": "Vælg et svar, før tiden løber ud.",
     "quiz.source_label": "KILDE",
     "quiz.read_more": "Læs hele teksten",
+    "quiz.next_in": "Næste spørgsmål om {seconds}s…",
     "quiz.seconds_short": "SEK",
     "result.title": "Flot kæmpet, {name}!",
     "result.score_summary": "{correct} af {total} rigtige",
@@ -512,6 +552,7 @@ const TRANSLATIONS = {
     "ready.questions_count": "{count} kysymystä",
     "ready.seconds_per_q": "30 sek/kysymys",
     "ready.climb": "Nouse sijoituksissa",
+    "ready.level": "Taso {level}",
     "ready.start": "Aloita peli",
     "ready.loading": "Ladataan kysymyksiä…",
     "ready.no_questions": "Ei vielä julkaistuja kysymyksiä",
@@ -527,6 +568,7 @@ const TRANSLATIONS = {
     "quiz.status.prompt": "Valitse vastaus ennen ajan loppumista.",
     "quiz.source_label": "LÄHDE",
     "quiz.read_more": "Lue koko teksti",
+    "quiz.next_in": "Seuraava kysymys {seconds}s kuluttua…",
     "quiz.seconds_short": "SEK",
     "result.title": "Hyvin taisteltu, {name}!",
     "result.score_summary": "{correct}/{total} oikein",
@@ -610,6 +652,7 @@ const TRANSLATIONS = {
     "ready.questions_count": "{count} preguntas",
     "ready.seconds_per_q": "30 seg/pregunta",
     "ready.climb": "Sube de rango",
+    "ready.level": "Nivel {level}",
     "ready.start": "Empezar a jugar",
     "ready.loading": "Cargando preguntas…",
     "ready.no_questions": "Aún no hay preguntas publicadas",
@@ -625,6 +668,7 @@ const TRANSLATIONS = {
     "quiz.status.prompt": "Elige una respuesta antes de que se acabe el tiempo.",
     "quiz.source_label": "FUENTE",
     "quiz.read_more": "Leer el texto completo",
+    "quiz.next_in": "Siguiente pregunta en {seconds}s…",
     "quiz.seconds_short": "SEG",
     "result.title": "¡Bien jugado, {name}!",
     "result.score_summary": "{correct} de {total} correctas",
@@ -708,6 +752,7 @@ const TRANSLATIONS = {
     "ready.questions_count": "{count} perguntas",
     "ready.seconds_per_q": "30 seg/pergunta",
     "ready.climb": "Suba no ranking",
+    "ready.level": "Nível {level}",
     "ready.start": "Começar o jogo",
     "ready.loading": "Carregando perguntas…",
     "ready.no_questions": "Nenhuma pergunta publicada ainda",
@@ -723,6 +768,7 @@ const TRANSLATIONS = {
     "quiz.status.prompt": "Escolha uma resposta antes que o tempo acabe.",
     "quiz.source_label": "FONTE",
     "quiz.read_more": "Ler o texto completo",
+    "quiz.next_in": "Próxima pergunta em {seconds}s…",
     "quiz.seconds_short": "SEG",
     "result.title": "Muito bem, {name}!",
     "result.score_summary": "{correct} de {total} corretas",
@@ -806,6 +852,7 @@ const TRANSLATIONS = {
     "ready.questions_count": "{count} questions",
     "ready.seconds_per_q": "30 sec/question",
     "ready.climb": "Grimpez au classement",
+    "ready.level": "Niveau {level}",
     "ready.start": "Démarrer la partie",
     "ready.loading": "Chargement des questions…",
     "ready.no_questions": "Aucune question publiée pour le moment",
@@ -821,6 +868,7 @@ const TRANSLATIONS = {
     "quiz.status.prompt": "Choisissez une réponse avant la fin du temps imparti.",
     "quiz.source_label": "SOURCE",
     "quiz.read_more": "Lire le texte complet",
+    "quiz.next_in": "Question suivante dans {seconds}s…",
     "quiz.seconds_short": "SEC",
     "result.title": "Bien joué, {name} !",
     "result.score_summary": "{correct} sur {total} correctes",
@@ -904,6 +952,7 @@ const TRANSLATIONS = {
     "ready.questions_count": "{count} Fragen",
     "ready.seconds_per_q": "30 Sek./Frage",
     "ready.climb": "Im Ranking aufsteigen",
+    "ready.level": "Level {level}",
     "ready.start": "Spiel starten",
     "ready.loading": "Fragen werden geladen…",
     "ready.no_questions": "Noch keine Fragen veröffentlicht",
@@ -919,6 +968,7 @@ const TRANSLATIONS = {
     "quiz.status.prompt": "Wähle eine Antwort, bevor die Zeit abläuft.",
     "quiz.source_label": "QUELLE",
     "quiz.read_more": "Ganzen Text lesen",
+    "quiz.next_in": "Nächste Frage in {seconds}s…",
     "quiz.seconds_short": "SEK",
     "result.title": "Gut gespielt, {name}!",
     "result.score_summary": "{correct} von {total} richtig",
@@ -1002,6 +1052,7 @@ const TRANSLATIONS = {
     "ready.questions_count": "{count} tanong",
     "ready.seconds_per_q": "30 seg/tanong",
     "ready.climb": "Umakyat sa ranggo",
+    "ready.level": "Antas {level}",
     "ready.start": "Simulan ang laro",
     "ready.loading": "Nilo-load ang mga tanong…",
     "ready.no_questions": "Wala pang na-publish na tanong",
@@ -1017,6 +1068,7 @@ const TRANSLATIONS = {
     "quiz.status.prompt": "Pumili ng sagot bago maubos ang oras.",
     "quiz.source_label": "PINAGMULAN",
     "quiz.read_more": "Basahin ang buong teksto",
+    "quiz.next_in": "Susunod na tanong sa {seconds}s…",
     "quiz.seconds_short": "SEG",
     "result.title": "Magaling, {name}!",
     "result.score_summary": "{correct} sa {total} ang tama",
@@ -1100,6 +1152,7 @@ const TRANSLATIONS = {
     "ready.questions_count": "{count}개의 질문",
     "ready.seconds_per_q": "30초/질문",
     "ready.climb": "순위 올리기",
+    "ready.level": "레벨 {level}",
     "ready.start": "게임 시작",
     "ready.loading": "질문 불러오는 중…",
     "ready.no_questions": "아직 게시된 질문이 없습니다",
@@ -1115,6 +1168,7 @@ const TRANSLATIONS = {
     "quiz.status.prompt": "시간이 끝나기 전에 답을 선택하세요.",
     "quiz.source_label": "출처",
     "quiz.read_more": "전체 본문 읽기",
+    "quiz.next_in": "{seconds}초 후 다음 질문…",
     "quiz.seconds_short": "초",
     "result.title": "잘하셨어요, {name}님!",
     "result.score_summary": "{total}개 중 {correct}개 정답",
@@ -1198,6 +1252,7 @@ const TRANSLATIONS = {
     "ready.questions_count": "{count} คำถาม",
     "ready.seconds_per_q": "30 วิ/คำถาม",
     "ready.climb": "ไต่อันดับ",
+    "ready.level": "เลเวล {level}",
     "ready.start": "เริ่มเกม",
     "ready.loading": "กำลังโหลดคำถาม…",
     "ready.no_questions": "ยังไม่มีคำถามที่เผยแพร่",
@@ -1213,6 +1268,7 @@ const TRANSLATIONS = {
     "quiz.status.prompt": "เลือกคำตอบก่อนหมดเวลา",
     "quiz.source_label": "แหล่งที่มา",
     "quiz.read_more": "อ่านข้อความเต็ม",
+    "quiz.next_in": "คำถามถัดไปใน {seconds} วินาที…",
     "quiz.seconds_short": "วิ",
     "result.title": "สู้ได้ดีมาก {name}!",
     "result.score_summary": "ถูก {correct} จาก {total} ข้อ",
@@ -1548,11 +1604,14 @@ export default function BibleRun() {
   const [locked, setLocked] = useState(false);
   const [timeLeft, setTimeLeft] = useState(QUESTION_SECONDS);
   const [loadingQuiz, setLoadingQuiz] = useState(false);
+  const [revealCountdown, setRevealCountdown] = useState(0);
 
   const [leaderboard, setLeaderboard] = useState([]);
   const [leaderboardLoading, setLeaderboardLoading] = useState(false);
+  const [playerStats, setPlayerStats] = useState(null);
 
   const timerRef = useRef(null);
+  const revealRef = useRef(null);
 
   const [oauthLoading, setOauthLoading] = useState(false);
 
@@ -1746,6 +1805,7 @@ export default function BibleRun() {
       const qs = await sb("questions?status=eq.approved&is_active=eq.true&order=sort_order.asc&select=*");
       if (qs.length === 0) {
         setReadyError(t("ready.err_no_questions"));
+        setScreen("ready");
         setLoadingQuiz(false);
         return;
       }
@@ -1759,6 +1819,7 @@ export default function BibleRun() {
       setScreen("quiz");
     } catch (err) {
       setReadyError(err.message || t("ready.err_fetch"));
+      setScreen("ready");
     } finally {
       setLoadingQuiz(false);
     }
@@ -1778,19 +1839,29 @@ export default function BibleRun() {
       setScore(newScore);
       if (isCorrect) setCorrectCount(newCorrect);
 
-      setTimeout(() => {
-        if (qIndex + 1 < questions.length) {
-          setQIndex((i) => i + 1);
-          setSelected(null);
-          setLocked(false);
-          setTimeLeft(QUESTION_SECONDS);
-        } else {
-          finishGame(newScore, newCorrect);
+      setRevealCountdown(REVEAL_SECONDS);
+      let remaining = REVEAL_SECONDS;
+      clearInterval(revealRef.current);
+      revealRef.current = setInterval(() => {
+        remaining -= 1;
+        setRevealCountdown(remaining);
+        if (remaining <= 0) {
+          clearInterval(revealRef.current);
+          if (qIndex + 1 < questions.length) {
+            setQIndex((i) => i + 1);
+            setSelected(null);
+            setLocked(false);
+            setTimeLeft(QUESTION_SECONDS);
+          } else {
+            finishGame(newScore, newCorrect);
+          }
         }
-      }, 1400);
+      }, 1000);
     },
     [locked, questions, qIndex, timeLeft, score, correctCount]
   );
+
+  useEffect(() => () => clearInterval(revealRef.current), []);
 
   async function finishGame(finalScore, finalCorrect) {
     setScreen("result");
@@ -1808,6 +1879,7 @@ export default function BibleRun() {
     } catch {
       // Resultatet visas ändå i UI:t även om sparningen mot databasen skulle strula.
     }
+    loadPlayerStats(player.id);
   }
 
   useEffect(() => {
@@ -1820,8 +1892,7 @@ export default function BibleRun() {
     return () => clearTimeout(timerRef.current);
   }, [screen, timeLeft, locked, handleAnswer]);
 
-  async function openLeaderboard() {
-    setScreen("leaderboard");
+  const fetchLeaderboard = useCallback(async () => {
     setLeaderboardLoading(true);
     try {
       const rows = await sb("leaderboard?select=*&order=best_score.desc&limit=10");
@@ -1831,7 +1902,20 @@ export default function BibleRun() {
     } finally {
       setLeaderboardLoading(false);
     }
+  }, []);
+
+  async function openLeaderboard() {
+    setScreen("leaderboard");
+    fetchLeaderboard();
   }
+
+  useEffect(() => {
+    if (player?.id) fetchLeaderboard();
+  }, [player?.id, fetchLeaderboard]);
+
+  useEffect(() => {
+    if (screen === "result" && player?.id) fetchLeaderboard();
+  }, [screen, player?.id, fetchLeaderboard]);
 
   useEffect(() => {
     if (screen !== "ready") return;
@@ -1839,6 +1923,23 @@ export default function BibleRun() {
       .then((rows) => setActiveQuestionCount(rows.length))
       .catch(() => setActiveQuestionCount(null));
   }, [screen]);
+
+  const loadPlayerStats = useCallback(async (playerId) => {
+    try {
+      const rows = await sb("rpc/get_player_stats", {
+        method: "POST",
+        body: JSON.stringify({ p_player_id: playerId }),
+      });
+      setPlayerStats(rows?.[0] || null);
+    } catch {
+      setPlayerStats(null);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (player?.id) loadPlayerStats(player.id);
+    else setPlayerStats(null);
+  }, [player?.id, loadPlayerStats]);
 
   async function submitContactForm(e) {
     e?.preventDefault?.();
@@ -2058,30 +2159,37 @@ export default function BibleRun() {
   const options = q ? [["A", q.option_a], ["B", q.option_b], ["C", q.option_c], ["D", q.option_d]] : [];
   const correctOption = q ? options.find(([k]) => k === q.correct_option) : null;
 
+  const heroLevel = playerStats ? levelFromScore(playerStats.total_score) : 1;
+  const heroXpIntoLevel = playerStats ? (playerStats.total_score % LEVEL_SCORE_STEP) : 0;
+  const showSidebar = player && !["auth", "resetPassword", "leaderboard"].includes(screen);
+
   return (
     <Backdrop>
-      <div className="mx-auto flex max-h-screen w-full max-w-2xl flex-col justify-center overflow-y-auto px-5 py-6">
-        <div className="mb-8 text-center">
+      <div className="mx-auto flex h-full max-h-screen w-full max-w-6xl flex-col overflow-y-auto px-5 py-6">
+        <header className="mb-6 flex-none text-center">
           <div className="mb-2 flex justify-center">
             <Crown className="h-9 w-9 text-amber-400" />
           </div>
           <h1 className="bg-gradient-to-b from-amber-200 via-amber-400 to-amber-600 bg-clip-text text-5xl font-bold tracking-wide text-transparent">
             BIBLE RUN
           </h1>
-          <div className="mt-2 flex justify-center gap-1.5 font-sans text-xs">
+          <div className="mt-2 flex flex-wrap justify-center gap-1.5 font-sans text-xs">
             {LANGUAGES.map((l) => (
               <button
                 key={l.code}
                 type="button"
                 onClick={() => changeLang(l.code)}
                 aria-pressed={lang === l.code}
-                className={`rounded-full border px-2.5 py-1 transition ${lang === l.code ? "border-amber-400 bg-amber-500/20 text-amber-200" : "border-amber-800/40 text-amber-300/60 hover:text-amber-200"}`}
+                className={`flex items-center gap-1 rounded-full border px-2.5 py-1 transition ${lang === l.code ? "border-amber-400 bg-amber-500/20 text-amber-200" : "border-amber-800/40 text-amber-300/60 hover:text-amber-200"}`}
               >
-                {l.flag} {l.label}
+                <FlagIcon code={LANG_TO_COUNTRY[l.code]} /> {l.label}
               </button>
             ))}
           </div>
-        </div>
+        </header>
+
+        <main className="flex w-full flex-1 flex-col items-center justify-center gap-6 lg:flex-row lg:items-center">
+        <div className="w-full lg:max-w-[640px]">
 
         {screen === "resetPassword" && (
           <div className="mx-auto w-full max-w-[560px] rounded-2xl border border-amber-700/40 bg-slate-950/96 p-6 shadow-2xl">
@@ -2332,11 +2440,16 @@ export default function BibleRun() {
             </div>
           </div>
         )}
-        {screen === "auth" && <FooterNav onSelect={openFooterModal} t={t} />}
 
         {screen === "ready" && player && (
-          <div className="mx-auto w-full max-w-[560px] rounded-2xl border border-amber-700/40 bg-slate-950/96 p-6 text-center shadow-2xl">
-            <p className="font-sans text-sm text-amber-300">{t("ready.welcome", { name: player.display_name })} {playerCountry?.flag}</p>
+          <div className="mx-auto w-full max-w-[560px] rounded-2xl border border-amber-700/40 bg-slate-950/96 p-6 text-center shadow-2xl lg:max-w-[640px] lg:p-8">
+            <p className="flex items-center justify-center gap-1.5 font-sans text-sm text-amber-300">{t("ready.welcome", { name: player.display_name })} <FlagIcon code={playerCountry?.code} /></p>
+            {playerStats && (
+              <p className="mt-1 flex items-center justify-center gap-1 font-sans text-xs font-semibold text-amber-400">
+                <Crown className="h-3.5 w-3.5" /> {t("ready.level", { level: heroLevel })}
+                <span className="text-slate-500">· {heroXpIntoLevel}/{LEVEL_SCORE_STEP} XP</span>
+              </p>
+            )}
             <Divider />
             <h2 className="mb-4 font-serif text-xl font-bold">{t("ready.title")}</h2>
             <div className="mb-6 flex justify-center gap-6 font-sans text-xs text-amber-200">
@@ -2371,10 +2484,9 @@ export default function BibleRun() {
             </div>
           </div>
         )}
-        {screen === "ready" && <FooterNav onSelect={openFooterModal} t={t} />}
 
         {screen === "quiz" && q && (
-          <div className="mx-auto w-full max-w-[560px] rounded-2xl border-2 border-amber-600/70 bg-slate-950/92 p-6 shadow-2xl">
+          <div className="mx-auto w-full max-w-[560px] rounded-2xl border-2 border-amber-600/70 bg-slate-950/92 p-6 shadow-2xl lg:max-w-[640px] lg:p-8">
             <div className="mb-3 flex items-start justify-between border-b border-amber-700/40 pb-3">
               <div>
                 <p className="font-sans text-xs font-bold tracking-widest text-amber-400">
@@ -2397,15 +2509,15 @@ export default function BibleRun() {
             </div>
 
             {q.context && (
-              <div className="mt-3 rounded-r-md border-l-2 border-amber-500 bg-slate-900/70 px-3 py-2">
-                <span className="font-sans text-[10px] font-bold tracking-widest text-amber-400">{t("quiz.context_label")}</span>
-                <p className="mt-1 font-sans text-xs leading-relaxed text-slate-300">{q.context}</p>
+              <div className="mt-3 rounded-r-md border-l-2 border-amber-500 bg-slate-900/70 px-3 py-2 lg:px-4 lg:py-3">
+                <span className="font-sans text-[10px] font-bold tracking-widest text-amber-400 lg:text-xs">{t("quiz.context_label")}</span>
+                <p className="mt-1 font-sans text-xs leading-relaxed text-slate-300 lg:text-sm">{q.context}</p>
               </div>
             )}
 
-            <h3 className="my-4 text-center font-serif text-lg font-semibold leading-snug">{q.question}</h3>
+            <h3 className="my-4 text-center font-serif text-lg font-semibold leading-snug lg:text-2xl">{q.question}</h3>
 
-            <div className="grid grid-cols-1 gap-2 font-sans sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-2 font-sans sm:grid-cols-2 lg:gap-3">
               {options.map(([key, text]) => {
                 const isSelected = selected === key;
                 const isCorrectOption = q.correct_option === key;
@@ -2417,9 +2529,9 @@ export default function BibleRun() {
                     key={key}
                     disabled={locked}
                     onClick={() => handleAnswer(key)}
-                    className={`flex items-center gap-2 rounded-lg border px-3 py-2.5 text-left text-sm transition ${cls}`}
+                    className={`flex items-center gap-2 rounded-lg border px-3 py-2.5 text-left text-sm transition lg:px-4 lg:py-3.5 lg:text-base ${cls}`}
                   >
-                    <span className="grid h-6 w-6 flex-none place-content-center rounded-full border border-amber-500/60 text-xs text-amber-300">
+                    <span className="grid h-6 w-6 flex-none place-content-center rounded-full border border-amber-500/60 text-xs text-amber-300 lg:h-7 lg:w-7 lg:text-sm">
                       {key}
                     </span>
                     <span className="flex-1">{text}</span>
@@ -2431,7 +2543,7 @@ export default function BibleRun() {
             </div>
 
             <p
-              className={`mt-3 min-h-[1.4em] text-center font-sans text-xs font-semibold ${
+              className={`mt-3 min-h-[1.4em] text-center font-sans text-xs font-semibold lg:text-sm ${
                 selected === q.correct_option ? "text-green-400" : selected || timeLeft === 0 ? "text-red-400" : "text-slate-400"
               }`}
               role="status"
@@ -2460,6 +2572,12 @@ export default function BibleRun() {
                 )}
               </div>
             )}
+
+            {locked && revealCountdown > 0 && (
+              <p className="mt-3 text-center font-sans text-[11px] text-slate-500">
+                {t("quiz.next_in", { seconds: revealCountdown })}
+              </p>
+            )}
           </div>
         )}
 
@@ -2473,7 +2591,9 @@ export default function BibleRun() {
             <p className="mt-1 font-serif text-3xl font-bold text-amber-400">{score} {t("result.points_suffix")}</p>
             <Divider />
             <div className="space-y-2">
-              <GoldButton onClick={() => setScreen("ready")}>{t("result.play_again")}</GoldButton>
+              <GoldButton onClick={startGame} disabled={loadingQuiz}>
+                {loadingQuiz ? t("ready.loading") : t("result.play_again")}
+              </GoldButton>
               <button type="button"
                 onClick={shareResult}
                 className="w-full rounded-lg border border-amber-600/50 py-2.5 font-sans text-sm text-amber-200 hover:bg-amber-900/20"
@@ -2504,12 +2624,11 @@ export default function BibleRun() {
 
             {!leaderboardLoading && leaderboard.length > 0 && (() => {
               const leader = leaderboard[0];
-              const leaderFlag = COUNTRIES.find((c) => c.code === leader.country_code)?.flag;
               return (
                 <div className="mb-4 flex flex-col items-center gap-1 rounded-xl border-2 border-amber-400 bg-gradient-to-b from-amber-950/60 to-slate-900/60 px-4 py-4 text-center shadow-lg shadow-amber-900/30">
                   <Crown className="h-7 w-7 text-amber-300" />
                   <p className="font-sans text-[10px] font-bold uppercase tracking-widest text-amber-400">{t("lb.leading")}</p>
-                  <p className="font-serif text-lg font-bold text-amber-100">{leaderFlag} {leader.display_name}</p>
+                  <p className="flex items-center justify-center gap-1.5 font-serif text-lg font-bold text-amber-100"><FlagIcon code={leader.country_code} /> {leader.display_name}</p>
                   <p className="font-serif text-2xl font-bold text-amber-400">{leader.best_score} {t("result.points_suffix")}</p>
                 </div>
               );
@@ -2517,7 +2636,6 @@ export default function BibleRun() {
 
             <ol className="space-y-2 font-sans text-sm">
               {leaderboard.map((row, i) => {
-                const c = COUNTRIES.find((c) => c.code === row.country_code);
                 const rank = i + 1;
                 const medalStyle =
                   rank === 1 ? "border-amber-300 bg-amber-400 text-slate-950"
@@ -2530,7 +2648,7 @@ export default function BibleRun() {
                       <span className={`grid h-6 w-6 flex-none place-content-center rounded-full border text-xs font-bold ${medalStyle}`}>
                         {rank}
                       </span>
-                      <span>{c?.flag}</span>
+                      <FlagIcon code={row.country_code} />
                       <span className={row.player_id === player?.id ? "font-bold text-amber-300" : ""}>{row.display_name}</span>
                     </span>
                     <span className="text-amber-400">{row.best_score} {t("result.points_suffix")}</span>
@@ -2546,6 +2664,57 @@ export default function BibleRun() {
             </button>
           </div>
         )}
+        </div>
+
+        {showSidebar && (
+          <aside className="hidden w-full flex-none lg:block lg:w-[300px]">
+            <div className="rounded-2xl border border-amber-700/40 bg-slate-950/96 p-5 shadow-2xl">
+              <h2 className="mb-1 flex items-center gap-1.5 text-center font-serif text-base font-bold tracking-wide">
+                <Medal className="h-4 w-4 text-amber-400" /> {t("lb.title")}
+              </h2>
+              <Divider />
+              {leaderboardLoading && <p className="text-center font-sans text-xs text-slate-400">{t("lb.loading")}</p>}
+              {!leaderboardLoading && leaderboard.length === 0 && (
+                <p className="text-center font-sans text-xs text-slate-400">{t("lb.empty")}</p>
+              )}
+              {!leaderboardLoading && leaderboard.length > 0 && (
+                <ol className="space-y-1.5 font-sans text-xs">
+                  {leaderboard.slice(0, 5).map((row, i) => {
+                    const rank = i + 1;
+                    const medalStyle =
+                      rank === 1 ? "border-amber-300 bg-amber-400 text-slate-950"
+                      : rank === 2 ? "border-slate-300 bg-slate-300/90 text-slate-950"
+                      : rank === 3 ? "border-orange-700 bg-orange-700/80 text-white"
+                      : "border-amber-800/30 bg-slate-800 text-amber-300";
+                    return (
+                      <li key={row.player_id} className={`flex items-center justify-between rounded-md border px-2.5 py-1.5 ${rank <= 3 ? "border-amber-500/40 bg-slate-900/70" : "border-amber-800/30 bg-slate-900/50"}`}>
+                        <span className="flex min-w-0 items-center gap-1.5">
+                          <span className={`grid h-5 w-5 flex-none place-content-center rounded-full border text-[10px] font-bold ${medalStyle}`}>
+                            {rank}
+                          </span>
+                          <FlagIcon code={row.country_code} />
+                          <span className={`truncate ${row.player_id === player?.id ? "font-bold text-amber-300" : ""}`}>{row.display_name}</span>
+                        </span>
+                        <span className="flex-none text-amber-400">{row.best_score}</span>
+                      </li>
+                    );
+                  })}
+                </ol>
+              )}
+              <button type="button"
+                onClick={openLeaderboard}
+                className="mt-3 w-full rounded-lg border border-amber-600/50 py-2 font-sans text-xs text-amber-200 hover:bg-amber-900/20"
+              >
+                {t("result.view_leaderboard")}
+              </button>
+            </div>
+          </aside>
+        )}
+        </main>
+
+        <footer className="mt-6 flex-none">
+          <FooterNav onSelect={openFooterModal} t={t} />
+        </footer>
       </div>
 
       {footerModal === "about" && (
