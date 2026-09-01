@@ -165,6 +165,7 @@ const TRANSLATIONS = {
     "reset.expired": "Länken har gått ut eller är redan använd. Begär en ny återställningslänk.",
     "ready.welcome": "Välkommen, {name}",
     "ready.title": "Redo att ge dig ut?",
+    "ready.questions_count_one": "{count} fråga",
     "ready.questions_count": "{count} frågor",
     "ready.seconds_per_q": "30 sek/fråga",
     "ready.climb": "Klättra i rang",
@@ -265,6 +266,7 @@ const TRANSLATIONS = {
     "reset.expired": "This link has expired or was already used. Request a new reset link.",
     "ready.welcome": "Welcome, {name}",
     "ready.title": "Ready to set out?",
+    "ready.questions_count_one": "{count} question",
     "ready.questions_count": "{count} questions",
     "ready.seconds_per_q": "30 sec/question",
     "ready.climb": "Climb the ranks",
@@ -565,6 +567,7 @@ const TRANSLATIONS = {
     "reset.expired": "Linkki on vanhentunut tai jo käytetty. Pyydä uusi palautuslinkki.",
     "ready.welcome": "Tervetuloa, {name}",
     "ready.title": "Valmiina lähtemään?",
+    "ready.questions_count_one": "{count} kysymys",
     "ready.questions_count": "{count} kysymystä",
     "ready.seconds_per_q": "30 sek/kysymys",
     "ready.climb": "Nouse sijoituksissa",
@@ -665,6 +668,7 @@ const TRANSLATIONS = {
     "reset.expired": "El enlace ha caducado o ya se usó. Solicita un nuevo enlace de restablecimiento.",
     "ready.welcome": "Bienvenido, {name}",
     "ready.title": "¿Listo para empezar?",
+    "ready.questions_count_one": "{count} pregunta",
     "ready.questions_count": "{count} preguntas",
     "ready.seconds_per_q": "30 seg/pregunta",
     "ready.climb": "Sube de rango",
@@ -765,6 +769,7 @@ const TRANSLATIONS = {
     "reset.expired": "O link expirou ou já foi usado. Solicite um novo link de redefinição.",
     "ready.welcome": "Bem-vindo, {name}",
     "ready.title": "Pronto para começar?",
+    "ready.questions_count_one": "{count} pergunta",
     "ready.questions_count": "{count} perguntas",
     "ready.seconds_per_q": "30 seg/pergunta",
     "ready.climb": "Suba no ranking",
@@ -865,6 +870,7 @@ const TRANSLATIONS = {
     "reset.expired": "Le lien a expiré ou a déjà été utilisé. Demandez un nouveau lien de réinitialisation.",
     "ready.welcome": "Bienvenue, {name}",
     "ready.title": "Prêt à vous lancer ?",
+    "ready.questions_count_one": "{count} question",
     "ready.questions_count": "{count} questions",
     "ready.seconds_per_q": "30 sec/question",
     "ready.climb": "Grimpez au classement",
@@ -965,6 +971,7 @@ const TRANSLATIONS = {
     "reset.expired": "Der Link ist abgelaufen oder wurde bereits verwendet. Fordere einen neuen Link an.",
     "ready.welcome": "Willkommen, {name}",
     "ready.title": "Bereit loszulegen?",
+    "ready.questions_count_one": "{count} Frage",
     "ready.questions_count": "{count} Fragen",
     "ready.seconds_per_q": "30 Sek./Frage",
     "ready.climb": "Im Ranking aufsteigen",
@@ -1365,6 +1372,7 @@ const TRANSLATIONS = {
     "reset.expired": "Questo link è scaduto o è già stato usato. Richiedi un nuovo link.",
     "ready.welcome": "Benvenuto, {name}",
     "ready.title": "Pronto a partire?",
+    "ready.questions_count_one": "{count} domanda",
     "ready.questions_count": "{count} domande",
     "ready.seconds_per_q": "30 sec/domanda",
     "ready.climb": "Scala la classifica",
@@ -1465,6 +1473,7 @@ const TRANSLATIONS = {
     "reset.expired": "Deze link is verlopen of al gebruikt. Vraag een nieuwe resetlink aan.",
     "ready.welcome": "Welkom, {name}",
     "ready.title": "Klaar om te beginnen?",
+    "ready.questions_count_one": "{count} vraag",
     "ready.questions_count": "{count} vragen",
     "ready.seconds_per_q": "30 sec/vraag",
     "ready.climb": "Klim in de ranglijst",
@@ -1565,6 +1574,8 @@ const TRANSLATIONS = {
     "reset.expired": "Ten link wygasł lub został już użyty. Poproś o nowy link resetujący.",
     "ready.welcome": "Witaj, {name}",
     "ready.title": "Gotowy do startu?",
+    "ready.questions_count_one": "{count} pytanie",
+    "ready.questions_count_few": "{count} pytania",
     "ready.questions_count": "{count} pytań",
     "ready.seconds_per_q": "30 sek/pytanie",
     "ready.climb": "Wspinaj się w rankingu",
@@ -1665,6 +1676,8 @@ const TRANSLATIONS = {
     "reset.expired": "Срок действия ссылки истёк или она уже использована. Запросите новую ссылку.",
     "ready.welcome": "Добро пожаловать, {name}",
     "ready.title": "Готовы начать?",
+    "ready.questions_count_one": "{count} вопрос",
+    "ready.questions_count_few": "{count} вопроса",
     "ready.questions_count": "{count} вопросов",
     "ready.seconds_per_q": "30 сек/вопрос",
     "ready.climb": "Поднимайтесь в рейтинге",
@@ -1765,6 +1778,10 @@ const TRANSLATIONS = {
     "reset.expired": "انتهت صلاحية هذا الرابط أو تم استخدامه بالفعل. اطلب رابط إعادة تعيين جديد.",
     "ready.welcome": "مرحبًا، {name}",
     "ready.title": "هل أنت مستعد للانطلاق؟",
+    "ready.questions_count_zero": "لا توجد أسئلة",
+    "ready.questions_count_one": "سؤال واحد",
+    "ready.questions_count_two": "سؤالان",
+    "ready.questions_count_few": "{count} أسئلة",
     "ready.questions_count": "{count} سؤالًا",
     "ready.seconds_per_q": "30 ثانية/سؤال",
     "ready.climb": "تسلّق الترتيب",
@@ -2365,6 +2382,7 @@ const TRANSLATIONS = {
     "reset.expired": "Αυτός ο σύνδεσμος έχει λήξει ή έχει ήδη χρησιμοποιηθεί. Ζήτησε νέο σύνδεσμο επαναφοράς.",
     "ready.welcome": "Καλώς ήρθες, {name}",
     "ready.title": "Έτοιμος να ξεκινήσεις;",
+    "ready.questions_count_one": "{count} ερώτηση",
     "ready.questions_count": "{count} ερωτήσεις",
     "ready.seconds_per_q": "30 δευτ/ερώτηση",
     "ready.climb": "Ανέβα στην κατάταξη",
@@ -2465,6 +2483,7 @@ const TRANSLATIONS = {
     "reset.expired": "Kiungo hiki kimeisha muda au kimeshatumika. Omba kiungo kipya cha kuweka upya.",
     "ready.welcome": "Karibu, {name}",
     "ready.title": "Uko tayari kuanza?",
+    "ready.questions_count_one": "Swali {count}",
     "ready.questions_count": "Maswali {count}",
     "ready.seconds_per_q": "sekunde 30/swali",
     "ready.climb": "Panda katika orodha",
@@ -2523,7 +2542,19 @@ const TRANSLATIONS = {
 };
 
 function translate(lang, key, vars) {
-  let text = TRANSLATIONS[lang]?.[key] ?? TRANSLATIONS.en[key] ?? key;
+  const dict = TRANSLATIONS[lang] || TRANSLATIONS.en;
+  let resolvedKey = key;
+  if (vars && typeof vars.count === "number") {
+    let category = "other";
+    try {
+      category = new Intl.PluralRules(lang).select(vars.count);
+    } catch {
+      category = vars.count === 1 ? "one" : "other";
+    }
+    const pluralKey = `${key}_${category}`;
+    if (dict[pluralKey] !== undefined) resolvedKey = pluralKey;
+  }
+  let text = dict[resolvedKey] ?? dict[key] ?? TRANSLATIONS.en[resolvedKey] ?? TRANSLATIONS.en[key] ?? key;
   if (vars) {
     for (const [k, v] of Object.entries(vars)) {
       text = text.replaceAll(`{${k}}`, v);
@@ -2975,7 +3006,7 @@ export default function BibleRun() {
       await sb("rpc/request_password_reset", {
         method: "POST",
         prefer: "return=minimal",
-        body: JSON.stringify({ p_email: cleanEmail }),
+        body: JSON.stringify({ p_email: cleanEmail, p_lang: lang }),
       });
       setForgotSent(true);
     } catch (err) {
