@@ -147,6 +147,7 @@ const TRANSLATIONS = {
     "err.password_short": "Lösenordet måste vara minst 8 tecken.",
     "err.email_taken": "Det finns redan ett konto med den e-postadressen. Logga in istället.",
     "err.login_failed": "Fel e-post eller lösenord.",
+    "err.too_many_attempts": "För många försök. Vänta 15 minuter och försök igen.",
     "err.generic": "Något gick fel. Försök igen.",
     "err.oauth_failed": "Inloggningen misslyckades. Försök igen.",
     "forgot.title": "Återställ lösenord",
@@ -248,6 +249,7 @@ const TRANSLATIONS = {
     "err.password_short": "Password must be at least 8 characters.",
     "err.email_taken": "An account with that email already exists. Log in instead.",
     "err.login_failed": "Incorrect email or password.",
+    "err.too_many_attempts": "Too many attempts. Wait 15 minutes and try again.",
     "err.generic": "Something went wrong. Please try again.",
     "err.oauth_failed": "Login failed. Please try again.",
     "forgot.title": "Reset password",
@@ -349,6 +351,7 @@ const TRANSLATIONS = {
     "err.password_short": "Passordet må være minst 8 tegn.",
     "err.email_taken": "Det finnes allerede en konto med den e-postadressen. Logg inn i stedet.",
     "err.login_failed": "Feil e-post eller passord.",
+    "err.too_many_attempts": "For mange forsøk. Vent 15 minutter og prøv igjen.",
     "err.generic": "Noe gikk galt. Prøv igjen.",
     "err.oauth_failed": "Innloggingen mislyktes. Prøv igjen.",
     "forgot.title": "Tilbakestill passord",
@@ -449,6 +452,7 @@ const TRANSLATIONS = {
     "err.password_short": "Adgangskoden skal være mindst 8 tegn.",
     "err.email_taken": "Der findes allerede en konto med den e-mailadresse. Log ind i stedet.",
     "err.login_failed": "Forkert e-mail eller adgangskode.",
+    "err.too_many_attempts": "For mange forsøg. Vent 15 minutter, og prøv igen.",
     "err.generic": "Noget gik galt. Prøv igen.",
     "err.oauth_failed": "Login mislykkedes. Prøv igen.",
     "forgot.title": "Nulstil adgangskode",
@@ -549,6 +553,7 @@ const TRANSLATIONS = {
     "err.password_short": "Salasanan on oltava vähintään 8 merkkiä.",
     "err.email_taken": "Tällä sähköpostiosoitteella on jo tili. Kirjaudu sisään sen sijaan.",
     "err.login_failed": "Väärä sähköposti tai salasana.",
+    "err.too_many_attempts": "Liian monta yritystä. Odota 15 minuuttia ja yritä uudelleen.",
     "err.generic": "Jokin meni pieleen. Yritä uudelleen.",
     "err.oauth_failed": "Kirjautuminen epäonnistui. Yritä uudelleen.",
     "forgot.title": "Palauta salasana",
@@ -650,6 +655,7 @@ const TRANSLATIONS = {
     "err.password_short": "La contraseña debe tener al menos 8 caracteres.",
     "err.email_taken": "Ya existe una cuenta con ese correo. Inicia sesión en su lugar.",
     "err.login_failed": "Correo o contraseña incorrectos.",
+    "err.too_many_attempts": "Demasiados intentos. Espera 15 minutos e inténtalo de nuevo.",
     "err.generic": "Algo salió mal. Inténtalo de nuevo.",
     "err.oauth_failed": "El inicio de sesión falló. Inténtalo de nuevo.",
     "forgot.title": "Restablecer contraseña",
@@ -751,6 +757,7 @@ const TRANSLATIONS = {
     "err.password_short": "A senha deve ter pelo menos 8 caracteres.",
     "err.email_taken": "Já existe uma conta com esse e-mail. Faça login em vez disso.",
     "err.login_failed": "E-mail ou senha incorretos.",
+    "err.too_many_attempts": "Muitas tentativas. Aguarde 15 minutos e tente novamente.",
     "err.generic": "Algo deu errado. Tente novamente.",
     "err.oauth_failed": "Falha no login. Tente novamente.",
     "forgot.title": "Redefinir senha",
@@ -852,6 +859,7 @@ const TRANSLATIONS = {
     "err.password_short": "Le mot de passe doit contenir au moins 8 caractères.",
     "err.email_taken": "Un compte existe déjà avec cette adresse e-mail. Connectez-vous plutôt.",
     "err.login_failed": "E-mail ou mot de passe incorrect.",
+    "err.too_many_attempts": "Trop de tentatives. Attendez 15 minutes et réessayez.",
     "err.generic": "Une erreur s'est produite. Veuillez réessayer.",
     "err.oauth_failed": "La connexion a échoué. Veuillez réessayer.",
     "forgot.title": "Réinitialiser le mot de passe",
@@ -953,6 +961,7 @@ const TRANSLATIONS = {
     "err.password_short": "Das Passwort muss mindestens 8 Zeichen lang sein.",
     "err.email_taken": "Es gibt bereits ein Konto mit dieser E-Mail-Adresse. Melde dich stattdessen an.",
     "err.login_failed": "Falsche E-Mail oder falsches Passwort.",
+    "err.too_many_attempts": "Zu viele Versuche. Warte 15 Minuten und versuche es erneut.",
     "err.generic": "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
     "err.oauth_failed": "Anmeldung fehlgeschlagen. Bitte versuche es erneut.",
     "forgot.title": "Passwort zurücksetzen",
@@ -1054,6 +1063,7 @@ const TRANSLATIONS = {
     "err.password_short": "Ang password ay dapat hindi bababa sa 8 karakter.",
     "err.email_taken": "May account na sa email address na iyon. Mag-log in na lamang.",
     "err.login_failed": "Maling email o password.",
+    "err.too_many_attempts": "Sobrang dami ng pagsubok. Maghintay ng 15 minuto at subukan muli.",
     "err.generic": "May nagkamali. Subukan muli.",
     "err.oauth_failed": "Nabigo ang pag-log in. Subukan muli.",
     "forgot.title": "I-reset ang password",
@@ -1154,6 +1164,7 @@ const TRANSLATIONS = {
     "err.password_short": "비밀번호는 8자 이상이어야 합니다.",
     "err.email_taken": "이미 해당 이메일로 등록된 계정이 있습니다. 대신 로그인해 주세요.",
     "err.login_failed": "이메일 또는 비밀번호가 올바르지 않습니다.",
+    "err.too_many_attempts": "시도 횟수가 너무 많습니다. 15분 후 다시 시도해 주세요.",
     "err.generic": "문제가 발생했습니다. 다시 시도해 주세요.",
     "err.oauth_failed": "로그인에 실패했습니다. 다시 시도해 주세요.",
     "forgot.title": "비밀번호 재설정",
@@ -1254,6 +1265,7 @@ const TRANSLATIONS = {
     "err.password_short": "รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร",
     "err.email_taken": "มีบัญชีที่ใช้อีเมลนี้อยู่แล้ว โปรดเข้าสู่ระบบแทน",
     "err.login_failed": "อีเมลหรือรหัสผ่านไม่ถูกต้อง",
+    "err.too_many_attempts": "พยายามมากเกินไป โปรดรอ 15 นาทีแล้วลองอีกครั้ง",
     "err.generic": "เกิดข้อผิดพลาด โปรดลองอีกครั้ง",
     "err.oauth_failed": "เข้าสู่ระบบไม่สำเร็จ โปรดลองอีกครั้ง",
     "forgot.title": "รีเซ็ตรหัสผ่าน",
@@ -1354,6 +1366,7 @@ const TRANSLATIONS = {
     "err.password_short": "La password deve avere almeno 8 caratteri.",
     "err.email_taken": "Esiste già un account con questa email. Accedi invece.",
     "err.login_failed": "Email o password errati.",
+    "err.too_many_attempts": "Troppi tentativi. Attendi 15 minuti e riprova.",
     "err.generic": "Qualcosa è andato storto. Riprova.",
     "err.oauth_failed": "Accesso non riuscito. Riprova.",
     "forgot.title": "Reimposta password",
@@ -1455,6 +1468,7 @@ const TRANSLATIONS = {
     "err.password_short": "Wachtwoord moet minimaal 8 tekens bevatten.",
     "err.email_taken": "Er bestaat al een account met dit e-mailadres. Log in plaats daarvan in.",
     "err.login_failed": "Onjuiste e-mail of wachtwoord.",
+    "err.too_many_attempts": "Te veel pogingen. Wacht 15 minuten en probeer het opnieuw.",
     "err.generic": "Er is iets misgegaan. Probeer het opnieuw.",
     "err.oauth_failed": "Inloggen mislukt. Probeer het opnieuw.",
     "forgot.title": "Wachtwoord opnieuw instellen",
@@ -1556,6 +1570,7 @@ const TRANSLATIONS = {
     "err.password_short": "Hasło musi mieć co najmniej 8 znaków.",
     "err.email_taken": "Konto z tym adresem e-mail już istnieje. Zaloguj się zamiast tego.",
     "err.login_failed": "Nieprawidłowy e-mail lub hasło.",
+    "err.too_many_attempts": "Zbyt wiele prób. Poczekaj 15 minut i spróbuj ponownie.",
     "err.generic": "Coś poszło nie tak. Spróbuj ponownie.",
     "err.oauth_failed": "Logowanie nie powiodło się. Spróbuj ponownie.",
     "forgot.title": "Zresetuj hasło",
@@ -1658,6 +1673,7 @@ const TRANSLATIONS = {
     "err.password_short": "Пароль должен содержать минимум 8 символов.",
     "err.email_taken": "Аккаунт с таким email уже существует. Войдите вместо регистрации.",
     "err.login_failed": "Неверный email или пароль.",
+    "err.too_many_attempts": "Слишком много попыток. Подождите 15 минут и попробуйте снова.",
     "err.generic": "Что-то пошло не так. Попробуйте ещё раз.",
     "err.oauth_failed": "Вход не удался. Попробуйте ещё раз.",
     "forgot.title": "Сброс пароля",
@@ -1760,6 +1776,7 @@ const TRANSLATIONS = {
     "err.password_short": "يجب أن تحتوي كلمة المرور على 8 أحرف على الأقل.",
     "err.email_taken": "يوجد حساب بهذا البريد الإلكتروني بالفعل. سجّل الدخول بدلاً من ذلك.",
     "err.login_failed": "بريد إلكتروني أو كلمة مرور غير صحيحة.",
+    "err.too_many_attempts": "محاولات كثيرة جدًا. انتظر 15 دقيقة ثم حاول مرة أخرى.",
     "err.generic": "حدث خطأ ما. حاول مرة أخرى.",
     "err.oauth_failed": "فشل تسجيل الدخول. حاول مرة أخرى.",
     "forgot.title": "إعادة تعيين كلمة المرور",
@@ -1864,6 +1881,7 @@ const TRANSLATIONS = {
     "err.password_short": "密码必须至少8个字符。",
     "err.email_taken": "该邮箱已注册账户，请直接登录。",
     "err.login_failed": "邮箱或密码错误。",
+    "err.too_many_attempts": "尝试次数过多，请等待15分钟后再试。",
     "err.generic": "出了点问题，请重试。",
     "err.oauth_failed": "登录失败，请重试。",
     "forgot.title": "重置密码",
@@ -1964,6 +1982,7 @@ const TRANSLATIONS = {
     "err.password_short": "पासवर्ड कम से कम 8 अक्षर का होना चाहिए।",
     "err.email_taken": "इस ईमेल से पहले से एक खाता मौजूद है। इसके बजाय लॉग इन करें।",
     "err.login_failed": "गलत ईमेल या पासवर्ड।",
+    "err.too_many_attempts": "बहुत अधिक प्रयास। 15 मिनट प्रतीक्षा करें और फिर से प्रयास करें।",
     "err.generic": "कुछ गलत हो गया। कृपया पुनः प्रयास करें।",
     "err.oauth_failed": "लॉगिन विफल रहा। कृपया पुनः प्रयास करें।",
     "forgot.title": "पासवर्ड रीसेट करें",
@@ -2064,6 +2083,7 @@ const TRANSLATIONS = {
     "err.password_short": "Mật khẩu phải có ít nhất 8 ký tự.",
     "err.email_taken": "Đã tồn tại tài khoản với email này. Hãy đăng nhập thay vì đăng ký.",
     "err.login_failed": "Email hoặc mật khẩu không đúng.",
+    "err.too_many_attempts": "Quá nhiều lần thử. Vui lòng đợi 15 phút rồi thử lại.",
     "err.generic": "Đã xảy ra lỗi. Vui lòng thử lại.",
     "err.oauth_failed": "Đăng nhập thất bại. Vui lòng thử lại.",
     "forgot.title": "Đặt lại mật khẩu",
@@ -2164,6 +2184,7 @@ const TRANSLATIONS = {
     "err.password_short": "Kata sandi harus minimal 8 karakter.",
     "err.email_taken": "Akun dengan email ini sudah ada. Silakan masuk sebagai gantinya.",
     "err.login_failed": "Email atau kata sandi salah.",
+    "err.too_many_attempts": "Terlalu banyak percobaan. Tunggu 15 menit lalu coba lagi.",
     "err.generic": "Terjadi kesalahan. Silakan coba lagi.",
     "err.oauth_failed": "Login gagal. Silakan coba lagi.",
     "forgot.title": "Atur ulang kata sandi",
@@ -2264,6 +2285,7 @@ const TRANSLATIONS = {
     "err.password_short": "Şifre en az 8 karakter olmalı.",
     "err.email_taken": "Bu e-posta ile zaten bir hesap var. Bunun yerine giriş yap.",
     "err.login_failed": "Yanlış e-posta veya şifre.",
+    "err.too_many_attempts": "Çok fazla deneme. 15 dakika bekleyip tekrar dene.",
     "err.generic": "Bir şeyler yanlış gitti. Lütfen tekrar dene.",
     "err.oauth_failed": "Giriş başarısız oldu. Lütfen tekrar dene.",
     "forgot.title": "Şifreyi sıfırla",
@@ -2364,6 +2386,7 @@ const TRANSLATIONS = {
     "err.password_short": "Ο κωδικός πρέπει να έχει τουλάχιστον 8 χαρακτήρες.",
     "err.email_taken": "Υπάρχει ήδη λογαριασμός με αυτό το email. Συνδέσου αντ' αυτού.",
     "err.login_failed": "Λανθασμένο email ή κωδικός.",
+    "err.too_many_attempts": "Πολλές προσπάθειες. Περίμενε 15 λεπτά και δοκίμασε ξανά.",
     "err.generic": "Κάτι πήγε στραβά. Δοκίμασε ξανά.",
     "err.oauth_failed": "Η σύνδεση απέτυχε. Δοκίμασε ξανά.",
     "forgot.title": "Επαναφορά κωδικού",
@@ -2465,6 +2488,7 @@ const TRANSLATIONS = {
     "err.password_short": "Nenosiri lazima liwe na angalau herufi 8.",
     "err.email_taken": "Akaunti yenye barua pepe hii tayari ipo. Ingia badala yake.",
     "err.login_failed": "Barua pepe au nenosiri sio sahihi.",
+    "err.too_many_attempts": "Majaribio mengi mno. Subiri dakika 15 kisha jaribu tena.",
     "err.generic": "Hitilafu imetokea. Tafadhali jaribu tena.",
     "err.oauth_failed": "Kuingia hakukufanikiwa. Tafadhali jaribu tena.",
     "forgot.title": "Weka upya nenosiri",
@@ -2975,18 +2999,26 @@ export default function BibleRun() {
           }
         }
       } else {
-        const rows = await sb("rpc/login_player", {
-          method: "POST",
-          body: JSON.stringify({ p_email: cleanEmail, p_password: password }),
-        });
-        if (rows.length === 0) {
-          setAuthError(t("err.login_failed"));
-          setAuthLoading(false);
-          return;
+        try {
+          const rows = await sb("rpc/login_player", {
+            method: "POST",
+            body: JSON.stringify({ p_email: cleanEmail, p_password: password }),
+          });
+          if (rows.length === 0) {
+            setAuthError(t("err.login_failed"));
+            setAuthLoading(false);
+            return;
+          }
+          setPlayer(rows[0]);
+          savePlayerSession(rows[0]);
+          setScreen("ready");
+        } catch (err) {
+          if (err.message.includes("too_many_attempts")) {
+            setAuthError(t("err.too_many_attempts"));
+          } else {
+            throw err;
+          }
         }
-        setPlayer(rows[0]);
-        savePlayerSession(rows[0]);
-        setScreen("ready");
       }
     } catch (err) {
       setAuthError(err.message || t("err.generic"));
@@ -3260,8 +3292,8 @@ export default function BibleRun() {
       setAdminPasscode(code);
       setAdminStats(stats[0] || { pending: 0, approved: 0, active: 0, total: 0 });
       await loadAdminData(code);
-    } catch {
-      setAdminError("Fel kod.");
+    } catch (err) {
+      setAdminError(err.message?.includes("too_many_attempts") ? "För många felaktiga försök. Vänta 15 minuter och försök igen." : "Fel kod.");
     } finally {
       setAdminLoginLoading(false);
     }
