@@ -5,6 +5,40 @@ const SUPABASE_URL = "https://mhgnikriicjamwmxdjdg.supabase.co";
 const SUPABASE_KEY = "sb_publishable_qZQ3fm0Xs6uFGEMYg-RoSg_g-PktFsf";
 const QUESTION_SECONDS = 30;
 const REVEAL_SECONDS = 6;
+const QUIZ_LENGTH = 12;
+const DIFFICULTY_ORDER = { Grundnivå: 0, Medel: 1, Svår: 2 };
+
+function shuffled(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// Bygger en omgång som blir gradvis svårare: drar frågor jämnt ur varje
+// svårighetsnivå (slumpat inom nivån för variation mellan omgångar) och
+// sorterar sedan Grundnivå -> Medel -> Svår.
+function buildQuizSet(pool, size) {
+  const tiers = {};
+  for (const q of pool) {
+    const key = q.difficulty in DIFFICULTY_ORDER ? q.difficulty : "Övrigt";
+    (tiers[key] ??= []).push(q);
+  }
+  const tierNames = Object.keys(tiers).sort(
+    (a, b) => (DIFFICULTY_ORDER[a] ?? 99) - (DIFFICULTY_ORDER[b] ?? 99)
+  );
+  const shuffledTiers = tierNames.map((name) => shuffled(tiers[name]));
+  const perTier = Math.max(1, Math.ceil(size / tierNames.length));
+  let selection = shuffledTiers.flatMap((arr) => arr.slice(0, perTier)).slice(0, size);
+  if (selection.length < Math.min(size, pool.length)) {
+    const used = new Set(selection.map((q) => q.id));
+    const leftovers = shuffledTiers.flat().filter((q) => !used.has(q.id));
+    selection = selection.concat(leftovers).slice(0, size);
+  }
+  return selection.sort((a, b) => (DIFFICULTY_ORDER[a.difficulty] ?? 99) - (DIFFICULTY_ORDER[b.difficulty] ?? 99));
+}
 
 const COUNTRIES = [
   { code: "SE", name: "Sverige", flag: "🇸🇪" },
@@ -80,6 +114,19 @@ const LANG_TO_COUNTRY = {
   pt: "pt", fr: "fr", de: "de", tl: "ph", ko: "kr", th: "th",
   it: "it", nl: "nl", pl: "pl", ru: "ru", ar: "eg", zh: "cn",
   hi: "in", vi: "vn", id: "id", tr: "tr", el: "gr", sw: "ke",
+};
+
+// Predominant app-supported language per country, used by the outreach agent
+// to draft in the right language (falls back to "en" where no closer match
+// exists in LANGUAGES - the agent simply skips drafting until that language
+// gets a template).
+const COUNTRY_TO_LANG = {
+  SE: "sv", NO: "no", DK: "da", FI: "fi", US: "en", CA: "en", GB: "en", IE: "en",
+  DE: "de", AT: "de", CH: "de", FR: "fr", ES: "es", PT: "pt", IT: "it", NL: "nl",
+  PL: "pl", BR: "pt", MX: "es", AR: "es", CL: "es", CO: "es", PE: "es", NG: "en",
+  GH: "en", KE: "sw", ZA: "en", ET: "en", EG: "ar", IN: "hi", PH: "tl", KR: "ko",
+  JP: "en", CN: "zh", TH: "th", VN: "vi", ID: "id", MY: "en", SG: "en", AU: "en",
+  NZ: "en", RU: "ru", UA: "en", GR: "el", TR: "tr",
 };
 
 const RTL_LANGS = new Set(["ar"]);
@@ -2917,8 +2964,19 @@ export default function BibleRun() {
   const [outreachLoaded, setOutreachLoaded] = useState(false);
   const [outreachMaxCountries, setOutreachMaxCountries] = useState(5);
   const [outreachMaxEmails, setOutreachMaxEmails] = useState(20);
+  const [outreachMaxPerCountry, setOutreachMaxPerCountry] = useState(10);
   const [outreachConfigSaving, setOutreachConfigSaving] = useState(false);
   const [outreachConfigSaved, setOutreachConfigSaved] = useState(false);
+
+  // AI-agent (church outreach) state
+  const [outreachSubTab, setOutreachSubTab] = useState("research"); // research | queue | sent | replies | settings
+  const [outreachStats, setOutreachStats] = useState(null);
+  const [outreachQueue, setOutreachQueue] = useState([]);
+  const [outreachSentLog, setOutreachSentLog] = useState([]);
+  const [outreachReplies, setOutreachReplies] = useState([]);
+  const [outreachResearchCountry, setOutreachResearchCountry] = useState("US");
+  const [outreachBusy, setOutreachBusy] = useState(""); // "" | "research" | "verify" | "draft" | id being approved/rejected
+  const [outreachActionResult, setOutreachActionResult] = useState("");
   const [editingId, setEditingId] = useState(null);
   const [editDraft, setEditDraft] = useState(null);
 
@@ -3092,7 +3150,7 @@ export default function BibleRun() {
         setLoadingQuiz(false);
         return;
       }
-      setQuestions(qs);
+      setQuestions(buildQuizSet(qs, QUIZ_LENGTH));
       setQIndex(0);
       setScore(0);
       setCorrectCount(0);
@@ -3342,6 +3400,7 @@ export default function BibleRun() {
       if (configRows?.[0]) {
         setOutreachMaxCountries(configRows[0].max_countries_per_batch);
         setOutreachMaxEmails(configRows[0].max_emails_per_day);
+        setOutreachMaxPerCountry(configRows[0].max_emails_per_day_per_country ?? 10);
       }
       setOutreachLoaded(true);
     } catch (err) {
@@ -3362,11 +3421,13 @@ export default function BibleRun() {
           p_passcode: adminPasscode,
           p_max_countries: Number(outreachMaxCountries),
           p_max_emails: Number(outreachMaxEmails),
+          p_max_per_country: Number(outreachMaxPerCountry),
         }),
       });
       if (rows?.[0]) {
         setOutreachMaxCountries(rows[0].max_countries_per_batch);
         setOutreachMaxEmails(rows[0].max_emails_per_day);
+        setOutreachMaxPerCountry(rows[0].max_emails_per_day_per_country ?? 10);
       }
       setOutreachConfigSaved(true);
       setTimeout(() => setOutreachConfigSaved(false), 2500);
@@ -3380,6 +3441,172 @@ export default function BibleRun() {
   function openOutreachTab() {
     setAdminTab("outreach");
     if (!outreachLoaded) loadOutreachData();
+    loadOutreachStats();
+    loadOutreachQueue();
+  }
+
+  async function loadOutreachStats() {
+    try {
+      const rows = await sb("rpc/admin_outreach_stats", { method: "POST", body: JSON.stringify({ p_passcode: adminPasscode }) });
+      setOutreachStats(rows?.[0] || null);
+    } catch {
+      setOutreachStats(null);
+    }
+  }
+
+  async function loadOutreachQueue() {
+    try {
+      const rows = await sb("rpc/admin_outreach_queue", { method: "POST", body: JSON.stringify({ p_passcode: adminPasscode }) });
+      setOutreachQueue(rows || []);
+    } catch (err) {
+      setOutreachError(err.message || "Kunde inte hämta granskningskön.");
+    }
+  }
+
+  async function loadOutreachSentLog() {
+    try {
+      const rows = await sb("rpc/admin_outreach_sent_log", { method: "POST", body: JSON.stringify({ p_passcode: adminPasscode, p_limit: 100 }) });
+      setOutreachSentLog(rows || []);
+    } catch (err) {
+      setOutreachError(err.message || "Kunde inte hämta skickade mejl.");
+    }
+  }
+
+  async function loadOutreachReplies() {
+    try {
+      const rows = await sb("rpc/admin_outreach_list_replies", { method: "POST", body: JSON.stringify({ p_passcode: adminPasscode }) });
+      setOutreachReplies(rows || []);
+    } catch (err) {
+      setOutreachError(err.message || "Kunde inte hämta svar.");
+    }
+  }
+
+  function switchOutreachSubTab(tab) {
+    setOutreachSubTab(tab);
+    setOutreachActionResult("");
+    if (tab === "queue") loadOutreachQueue();
+    else if (tab === "sent") loadOutreachSentLog();
+    else if (tab === "replies") loadOutreachReplies();
+  }
+
+  async function runOutreachResearch() {
+    setOutreachBusy("research");
+    setOutreachError("");
+    setOutreachActionResult("");
+    try {
+      const country = COUNTRIES.find((c) => c.code === outreachResearchCountry);
+      const lang = COUNTRY_TO_LANG[outreachResearchCountry] || "en";
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/outreach-research`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", apikey: SUPABASE_KEY },
+        body: JSON.stringify({ passcode: adminPasscode, country_code: outreachResearchCountry, lang }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || `Fel (${res.status})`);
+      setOutreachActionResult(
+        `Sökte i ${country?.name || outreachResearchCountry}: hittade ${data.found}, sparade ${data.upserted} kyrkor.`
+      );
+      await loadOutreachStats();
+    } catch (err) {
+      setOutreachError(err.message || "Sökningen misslyckades.");
+    } finally {
+      setOutreachBusy("");
+    }
+  }
+
+  async function runOutreachVerify() {
+    setOutreachBusy("verify");
+    setOutreachError("");
+    setOutreachActionResult("");
+    try {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/outreach-verify`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", apikey: SUPABASE_KEY },
+        body: JSON.stringify({ passcode: adminPasscode }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || `Fel (${res.status})`);
+      setOutreachActionResult(
+        `Kontrollerade ${data.checked} hemsidor: ${data.live} lever, ${data.dead} döda. Hittade ${data.emails_found} nya mejladresser.`
+      );
+      await loadOutreachStats();
+    } catch (err) {
+      setOutreachError(err.message || "Verifieringen misslyckades.");
+    } finally {
+      setOutreachBusy("");
+    }
+  }
+
+  async function runOutreachDraft() {
+    setOutreachBusy("draft");
+    setOutreachError("");
+    setOutreachActionResult("");
+    try {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/outreach-draft`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", apikey: SUPABASE_KEY },
+        body: JSON.stringify({ passcode: adminPasscode }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || `Fel (${res.status})`);
+      setOutreachActionResult(`Skapade ${data.drafted} nya mejlutkast, redo att granskas.`);
+      await loadOutreachStats();
+    } catch (err) {
+      setOutreachError(err.message || "Kunde inte skapa utkast.");
+    } finally {
+      setOutreachBusy("");
+    }
+  }
+
+  async function approveOutreachMessage(id) {
+    setOutreachBusy(`approve-${id}`);
+    try {
+      await sb("rpc/admin_outreach_approve_message", { method: "POST", prefer: "return=minimal", body: JSON.stringify({ p_passcode: adminPasscode, p_message_id: id }) });
+      setOutreachQueue((q) => q.filter((m) => m.message_id !== id));
+      await loadOutreachStats();
+    } catch (err) {
+      setOutreachError(err.message || "Kunde inte godkänna mejlet.");
+    } finally {
+      setOutreachBusy("");
+    }
+  }
+
+  async function rejectOutreachMessage(id) {
+    setOutreachBusy(`reject-${id}`);
+    try {
+      await sb("rpc/admin_outreach_reject_message", { method: "POST", prefer: "return=minimal", body: JSON.stringify({ p_passcode: adminPasscode, p_message_id: id }) });
+      setOutreachQueue((q) => q.filter((m) => m.message_id !== id));
+      await loadOutreachStats();
+    } catch (err) {
+      setOutreachError(err.message || "Kunde inte avvisa mejlet.");
+    } finally {
+      setOutreachBusy("");
+    }
+  }
+
+  async function approveAllOutreachMessages() {
+    if (outreachQueue.length === 0) return;
+    setOutreachBusy("approve-all");
+    try {
+      const ids = outreachQueue.map((m) => m.message_id);
+      await sb("rpc/admin_outreach_approve_batch", { method: "POST", prefer: "return=minimal", body: JSON.stringify({ p_passcode: adminPasscode, p_message_ids: ids }) });
+      setOutreachQueue([]);
+      setOutreachActionResult(`Godkände ${ids.length} mejl. De skickas ut gradvis (~10/dag/land).`);
+      await loadOutreachStats();
+    } catch (err) {
+      setOutreachError(err.message || "Kunde inte godkänna alla.");
+    } finally {
+      setOutreachBusy("");
+    }
+  }
+
+  async function toggleReplyHandled(id, current) {
+    try {
+      await sb("rpc/admin_outreach_mark_reply_handled", { method: "POST", prefer: "return=minimal", body: JSON.stringify({ p_passcode: adminPasscode, p_id: id, p_handled: !current }) });
+      setOutreachReplies((rs) => rs.map((r) => (r.id === id ? { ...r, handled: !current } : r)));
+    } catch (err) {
+      setOutreachError(err.message || "Kunde inte uppdatera svaret.");
+    }
   }
 
   async function toggleMessageHandled(id, current) {
@@ -4172,7 +4399,7 @@ export default function BibleRun() {
                 <button type="button" onClick={() => setAdminTab("pending")} className={`flex-1 rounded-md py-1.5 ${adminTab === "pending" ? "bg-amber-500 font-semibold text-slate-950" : "text-amber-200"}`}>Att granska ({adminStats.pending})</button>
                 <button type="button" onClick={() => setAdminTab("published")} className={`flex-1 rounded-md py-1.5 ${adminTab === "published" ? "bg-amber-500 font-semibold text-slate-950" : "text-amber-200"}`}>Publicerade ({adminStats.approved})</button>
                 <button type="button" onClick={() => setAdminTab("messages")} className={`flex-1 rounded-md py-1.5 ${adminTab === "messages" ? "bg-amber-500 font-semibold text-slate-950" : "text-amber-200"}`}>Meddelanden ({messages.filter((m) => !m.handled).length})</button>
-                <button type="button" onClick={openOutreachTab} className={`flex-1 rounded-md py-1.5 ${adminTab === "outreach" ? "bg-amber-500 font-semibold text-slate-950" : "text-amber-200"}`}>Kyrko-agent</button>
+                <button type="button" onClick={openOutreachTab} className={`flex-1 rounded-md py-1.5 ${adminTab === "outreach" ? "bg-amber-500 font-semibold text-slate-950" : "text-amber-200"}`}>AI-agent</button>
               </div>
 
               {adminTab === "pending" && (
@@ -4271,82 +4498,207 @@ export default function BibleRun() {
               )}
 
               {adminTab === "outreach" && (
-                <div className="max-h-[50vh] space-y-4 overflow-y-auto">
+                <div className="space-y-3">
                   <div className="rounded-lg border border-amber-700/30 bg-slate-900/40 p-3 text-xs leading-relaxed text-slate-400">
-                    Kyrko-kontakter och avsändardomäner hämtas live från Resend. <strong className="text-amber-300">Inget skickas härifrån</strong> —
-                    detta är bara en översikt. Utskick kräver att du godkänner mejltexten och uttryckligen säger "skicka nu" i en separat chatt.
+                    Agenten hittar kyrkor via OpenStreetMaps publika register, verifierar att hemsida/mejl fungerar, och skriver mejlutkast.
+                    <strong className="text-amber-300"> Inget skickas förrän du godkänner varje mejl</strong> i Granska-fliken. Godkända mejl
+                    skickas sedan gradvis (max {outreachMaxPerCountry}/dag och land) så det aldrig blir en flodvåg.
                   </div>
 
-                  <div className="rounded-lg border border-amber-700/30 bg-slate-900/40 p-3">
-                    <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-amber-400">Gränser för agenten</p>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="mb-1 block text-[10px] text-slate-400">Länder per omgång</label>
-                        <input
-                          type="number"
-                          min={1}
-                          max={50}
-                          value={outreachMaxCountries}
-                          onChange={(e) => setOutreachMaxCountries(e.target.value)}
-                          className="w-full rounded-md border border-amber-700/50 bg-slate-950/70 px-2.5 py-1.5 text-sm text-amber-50 outline-none focus:border-amber-400"
-                        />
+                  {outreachStats && (
+                    <div className="grid grid-cols-4 gap-2 text-center text-[11px]">
+                      <div className="rounded-lg border border-amber-700/30 bg-slate-900/50 py-2">
+                        <p className="text-base font-bold text-amber-300">{outreachStats.churches_total}</p>
+                        <p className="text-slate-400">Kyrkor</p>
                       </div>
-                      <div>
-                        <label className="mb-1 block text-[10px] text-slate-400">Mejl per dag</label>
-                        <input
-                          type="number"
-                          min={1}
-                          max={500}
-                          value={outreachMaxEmails}
-                          onChange={(e) => setOutreachMaxEmails(e.target.value)}
-                          className="w-full rounded-md border border-amber-700/50 bg-slate-950/70 px-2.5 py-1.5 text-sm text-amber-50 outline-none focus:border-amber-400"
-                        />
+                      <div className="rounded-lg border border-amber-700/30 bg-slate-900/50 py-2">
+                        <p className="text-base font-bold text-green-400">{outreachStats.churches_live}</p>
+                        <p className="text-slate-400">Verifierade</p>
                       </div>
-                    </div>
-                    <button type="button"
-                      onClick={saveOutreachConfig}
-                      disabled={outreachConfigSaving}
-                      className="mt-3 w-full rounded-lg bg-gradient-to-b from-amber-300 to-amber-500 py-2 text-sm font-bold text-slate-950 disabled:opacity-50"
-                    >
-                      {outreachConfigSaving ? "Sparar…" : outreachConfigSaved ? "Sparat ✓" : "Spara gränser"}
-                    </button>
-                    <p className="mt-2 text-[10px] text-slate-500">
-                      Dessa gränser lagras och kommer respekteras av det faktiska utskicksflödet när det byggs. Gränserna ändrar inget om vad som skickas eller när - "skicka nu" krävs fortfarande alltid.
-                    </p>
-                  </div>
-
-                  {outreachLoading && <p className="text-center text-xs text-slate-400">Hämtar från Resend…</p>}
-                  {outreachError && <p className="rounded-lg border border-red-800/40 bg-red-950/30 px-3 py-2 text-xs text-red-400">{outreachError}</p>}
-
-                  {!outreachLoading && outreachDomains.length > 0 && (
-                    <div>
-                      <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-amber-400">Avsändardomäner i Resend</p>
-                      <div className="flex flex-wrap gap-2">
-                        {outreachDomains.map((d) => (
-                          <span key={d.name} className={`rounded-full px-2.5 py-1 text-xs ${d.status === "verified" ? "bg-green-900/40 text-green-300" : "bg-slate-700/60 text-slate-300"}`}>
-                            {d.name} · {d.status}
-                          </span>
-                        ))}
+                      <div className="rounded-lg border border-amber-700/30 bg-slate-900/50 py-2">
+                        <p className="text-base font-bold text-yellow-400">{outreachStats.messages_proposed}</p>
+                        <p className="text-slate-400">Att granska</p>
                       </div>
-                      <p className="mt-1 text-[10px] text-slate-500">
-                        biblerun.se är inte med i listan än - inga mejl kan skickas från en @biblerun.se-adress förrän domänen verifieras hos Resend (DNS hos Loopia).
-                      </p>
+                      <div className="rounded-lg border border-amber-700/30 bg-slate-900/50 py-2">
+                        <p className="text-base font-bold text-amber-400">{outreachStats.messages_sent_this_month}</p>
+                        <p className="text-slate-400">Skickat/mån</p>
+                      </div>
                     </div>
                   )}
 
-                  {!outreachLoading && outreachSegments.map((seg) => (
-                    <div key={seg.id}>
-                      <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-amber-400">{seg.name} ({seg.contacts.length})</p>
-                      <div className="space-y-1">
-                        {seg.contacts.map((c) => (
-                          <div key={c.email} className="flex items-center justify-between rounded-md border border-amber-800/20 bg-slate-900/40 px-3 py-1.5 text-xs">
-                            <span className="text-amber-100">{c.name || "(namnlös)"}</span>
-                            <span className="text-slate-400">{c.email}</span>
+                  <div className="flex rounded-lg border border-amber-700/40 p-1 text-[11px]">
+                    {[
+                      ["research", "Research"],
+                      ["queue", `Granska (${outreachStats?.messages_proposed ?? 0})`],
+                      ["sent", "Skickat"],
+                      ["replies", `Svar${outreachStats?.replies_unhandled ? ` (${outreachStats.replies_unhandled})` : ""}`],
+                      ["settings", "Inställningar"],
+                    ].map(([key, label]) => (
+                      <button key={key} type="button" onClick={() => switchOutreachSubTab(key)}
+                        className={`flex-1 rounded-md py-1.5 ${outreachSubTab === key ? "bg-amber-500 font-semibold text-slate-950" : "text-amber-200"}`}>
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {outreachError && <p className="rounded-lg border border-red-800/40 bg-red-950/30 px-3 py-2 text-xs text-red-400">{outreachError}</p>}
+                  {outreachActionResult && <p className="rounded-lg border border-green-800/40 bg-green-950/20 px-3 py-2 text-xs text-green-300">{outreachActionResult}</p>}
+
+                  <div className="max-h-[42vh] space-y-3 overflow-y-auto">
+                    {outreachSubTab === "research" && (
+                      <div className="space-y-3">
+                        <div className="rounded-lg border border-amber-700/30 bg-slate-900/40 p-3">
+                          <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-amber-400">1. Hitta kyrkor</p>
+                          <div className="flex gap-2">
+                            <select
+                              value={outreachResearchCountry}
+                              onChange={(e) => setOutreachResearchCountry(e.target.value)}
+                              className="flex-1 rounded-md border border-amber-700/50 bg-slate-950/70 px-2.5 py-1.5 text-sm text-amber-50 outline-none focus:border-amber-400"
+                            >
+                              {COUNTRIES.filter((c) => c.code !== "OTHER").map((c) => (
+                                <option key={c.code} value={c.code}>{c.name} ({COUNTRY_TO_LANG[c.code]})</option>
+                              ))}
+                            </select>
+                            <button type="button" onClick={runOutreachResearch} disabled={outreachBusy !== ""}
+                              className="rounded-lg bg-gradient-to-b from-amber-300 to-amber-500 px-4 text-sm font-bold text-slate-950 disabled:opacity-50">
+                              {outreachBusy === "research" ? "Söker…" : "Sök"}
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="rounded-lg border border-amber-700/30 bg-slate-900/40 p-3">
+                          <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-amber-400">2. Verifiera hemsida & mejl</p>
+                          <p className="mb-2 text-[11px] text-slate-400">Kollar upp till 20 overifierade kyrkor: att hemsidan faktiskt lever, och letar upp en publik kontaktmejl om den saknas.</p>
+                          <button type="button" onClick={runOutreachVerify} disabled={outreachBusy !== ""}
+                            className="w-full rounded-lg border border-amber-600/60 py-2 text-sm font-semibold text-amber-300 disabled:opacity-50">
+                            {outreachBusy === "verify" ? "Verifierar…" : "Verifiera nu"}
+                          </button>
+                        </div>
+
+                        <div className="rounded-lg border border-amber-700/30 bg-slate-900/40 p-3">
+                          <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-amber-400">3. Skapa mejlutkast</p>
+                          <p className="mb-2 text-[11px] text-slate-400">Skriver ett utkast per verifierad kyrka (varmt, inte säljande - gratis, källverifierat, enkelt sätt att lära sig bibeln). Inget skickas - hamnar i Granska.</p>
+                          <button type="button" onClick={runOutreachDraft} disabled={outreachBusy !== ""}
+                            className="w-full rounded-lg border border-amber-600/60 py-2 text-sm font-semibold text-amber-300 disabled:opacity-50">
+                            {outreachBusy === "draft" ? "Skriver…" : "Skapa utkast"}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {outreachSubTab === "queue" && (
+                      <div className="space-y-2">
+                        {outreachQueue.length > 0 && (
+                          <button type="button" onClick={approveAllOutreachMessages} disabled={outreachBusy !== ""}
+                            className="w-full rounded-lg bg-gradient-to-b from-amber-300 to-amber-500 py-2 text-sm font-bold text-slate-950 disabled:opacity-50">
+                            {outreachBusy === "approve-all" ? "Godkänner…" : `Godkänn alla ${outreachQueue.length}`}
+                          </button>
+                        )}
+                        {outreachQueue.length === 0 && <p className="text-center text-xs text-slate-400">Inget väntar på granskning.</p>}
+                        {outreachQueue.map((m) => (
+                          <div key={m.message_id} className="rounded-lg border border-amber-700/30 bg-slate-900/50 p-3 text-xs">
+                            <div className="mb-1 flex items-center justify-between">
+                              <span className="font-semibold text-amber-200">{m.church_name}</span>
+                              <span className="text-slate-500">{m.country_code} · {m.lang}</span>
+                            </div>
+                            <p className="text-slate-400">{m.contact_email}</p>
+                            <p className="mt-2 font-semibold text-amber-100">{m.subject}</p>
+                            <p className="mt-1 whitespace-pre-wrap text-slate-300">{m.body}</p>
+                            <div className="mt-2 flex gap-2">
+                              <button type="button" onClick={() => approveOutreachMessage(m.message_id)} disabled={outreachBusy !== ""}
+                                className="flex-1 rounded bg-green-700/80 py-1.5 text-xs font-semibold text-white disabled:opacity-50">
+                                {outreachBusy === `approve-${m.message_id}` ? "…" : "Godkänn"}
+                              </button>
+                              <button type="button" onClick={() => rejectOutreachMessage(m.message_id)} disabled={outreachBusy !== ""}
+                                className="flex-1 rounded bg-red-800/70 py-1.5 text-xs font-semibold text-white disabled:opacity-50">
+                                {outreachBusy === `reject-${m.message_id}` ? "…" : "Avvisa"}
+                              </button>
+                            </div>
                           </div>
                         ))}
                       </div>
-                    </div>
-                  ))}
+                    )}
+
+                    {outreachSubTab === "sent" && (
+                      <div className="space-y-2">
+                        {outreachSentLog.length === 0 && <p className="text-center text-xs text-slate-400">Inget skickat än.</p>}
+                        {outreachSentLog.map((m) => (
+                          <div key={m.message_id} className="flex items-center justify-between rounded-md border border-amber-800/20 bg-slate-900/40 px-3 py-2 text-xs">
+                            <div>
+                              <p className="text-amber-100">{m.church_name} <span className="text-slate-500">({m.country_code})</span></p>
+                              <p className="text-slate-400">{m.subject}</p>
+                            </div>
+                            <span className={`rounded-full px-2 py-0.5 text-[10px] ${m.status === "sent" ? "bg-green-900/40 text-green-300" : "bg-red-900/40 text-red-300"}`}>
+                              {m.status}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {outreachSubTab === "replies" && (
+                      <div className="space-y-2">
+                        {outreachReplies.length === 0 && <p className="text-center text-xs text-slate-400">Inga svar än.</p>}
+                        {outreachReplies.map((r) => (
+                          <div key={r.id} className="rounded-lg border border-amber-700/30 bg-slate-900/50 p-3 text-xs">
+                            <div className="mb-1 flex items-center justify-between">
+                              <span className="font-semibold text-amber-200">{r.church_name || r.from_email}</span>
+                              <label className="flex items-center gap-1 text-[10px] text-slate-400">
+                                <input type="checkbox" checked={r.handled} onChange={() => toggleReplyHandled(r.id, r.handled)} />
+                                Hanterat
+                              </label>
+                            </div>
+                            <p className="text-slate-400">{r.from_email} · {r.subject}</p>
+                            <p className="mt-1 whitespace-pre-wrap text-slate-300">{r.body}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {outreachSubTab === "settings" && (
+                      <div className="rounded-lg border border-amber-700/30 bg-slate-900/40 p-3">
+                        <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-amber-400">Gränser för agenten</p>
+                        <div className="grid grid-cols-3 gap-3">
+                          <div>
+                            <label className="mb-1 block text-[10px] text-slate-400">Länder/omgång</label>
+                            <input type="number" min={1} max={50} value={outreachMaxCountries}
+                              onChange={(e) => setOutreachMaxCountries(e.target.value)}
+                              className="w-full rounded-md border border-amber-700/50 bg-slate-950/70 px-2.5 py-1.5 text-sm text-amber-50 outline-none focus:border-amber-400" />
+                          </div>
+                          <div>
+                            <label className="mb-1 block text-[10px] text-slate-400">Mejl/dag totalt</label>
+                            <input type="number" min={1} max={500} value={outreachMaxEmails}
+                              onChange={(e) => setOutreachMaxEmails(e.target.value)}
+                              className="w-full rounded-md border border-amber-700/50 bg-slate-950/70 px-2.5 py-1.5 text-sm text-amber-50 outline-none focus:border-amber-400" />
+                          </div>
+                          <div>
+                            <label className="mb-1 block text-[10px] text-slate-400">Mejl/dag/land</label>
+                            <input type="number" min={1} max={100} value={outreachMaxPerCountry}
+                              onChange={(e) => setOutreachMaxPerCountry(e.target.value)}
+                              className="w-full rounded-md border border-amber-700/50 bg-slate-950/70 px-2.5 py-1.5 text-sm text-amber-50 outline-none focus:border-amber-400" />
+                          </div>
+                        </div>
+                        <button type="button" onClick={saveOutreachConfig} disabled={outreachConfigSaving}
+                          className="mt-3 w-full rounded-lg bg-gradient-to-b from-amber-300 to-amber-500 py-2 text-sm font-bold text-slate-950 disabled:opacity-50">
+                          {outreachConfigSaving ? "Sparar…" : outreachConfigSaved ? "Sparat ✓" : "Spara gränser"}
+                        </button>
+
+                        {outreachLoading && <p className="mt-3 text-center text-xs text-slate-400">Hämtar från Resend…</p>}
+                        {!outreachLoading && outreachDomains.length > 0 && (
+                          <div className="mt-3">
+                            <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-amber-400">Avsändardomäner i Resend</p>
+                            <div className="flex flex-wrap gap-2">
+                              {outreachDomains.map((d) => (
+                                <span key={d.name} className={`rounded-full px-2.5 py-1 text-xs ${d.status === "verified" ? "bg-green-900/40 text-green-300" : "bg-slate-700/60 text-slate-300"}`}>
+                                  {d.name} · {d.status}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
 
