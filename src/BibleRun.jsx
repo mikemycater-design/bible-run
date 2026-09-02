@@ -5,6 +5,40 @@ const SUPABASE_URL = "https://mhgnikriicjamwmxdjdg.supabase.co";
 const SUPABASE_KEY = "sb_publishable_qZQ3fm0Xs6uFGEMYg-RoSg_g-PktFsf";
 const QUESTION_SECONDS = 30;
 const REVEAL_SECONDS = 6;
+const QUIZ_LENGTH = 12;
+const DIFFICULTY_ORDER = { Grundnivå: 0, Medel: 1, Svår: 2 };
+
+function shuffled(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// Bygger en omgång som blir gradvis svårare: drar frågor jämnt ur varje
+// svårighetsnivå (slumpat inom nivån för variation mellan omgångar) och
+// sorterar sedan Grundnivå -> Medel -> Svår.
+function buildQuizSet(pool, size) {
+  const tiers = {};
+  for (const q of pool) {
+    const key = q.difficulty in DIFFICULTY_ORDER ? q.difficulty : "Övrigt";
+    (tiers[key] ??= []).push(q);
+  }
+  const tierNames = Object.keys(tiers).sort(
+    (a, b) => (DIFFICULTY_ORDER[a] ?? 99) - (DIFFICULTY_ORDER[b] ?? 99)
+  );
+  const shuffledTiers = tierNames.map((name) => shuffled(tiers[name]));
+  const perTier = Math.max(1, Math.ceil(size / tierNames.length));
+  let selection = shuffledTiers.flatMap((arr) => arr.slice(0, perTier)).slice(0, size);
+  if (selection.length < Math.min(size, pool.length)) {
+    const used = new Set(selection.map((q) => q.id));
+    const leftovers = shuffledTiers.flat().filter((q) => !used.has(q.id));
+    selection = selection.concat(leftovers).slice(0, size);
+  }
+  return selection.sort((a, b) => (DIFFICULTY_ORDER[a.difficulty] ?? 99) - (DIFFICULTY_ORDER[b.difficulty] ?? 99));
+}
 
 const COUNTRIES = [
   { code: "SE", name: "Sverige", flag: "🇸🇪" },
@@ -3092,7 +3126,7 @@ export default function BibleRun() {
         setLoadingQuiz(false);
         return;
       }
-      setQuestions(qs);
+      setQuestions(buildQuizSet(qs, QUIZ_LENGTH));
       setQIndex(0);
       setScore(0);
       setCorrectCount(0);
