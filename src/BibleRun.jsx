@@ -2931,6 +2931,10 @@ export default function BibleRun() {
   }, [player?.id]);
 
   useEffect(() => {
+    if (screen !== "auth") setLangMenuOpen(false);
+  }, [screen]);
+
+  useEffect(() => {
     if (!langMenuOpen) return;
     function handleClickOutside(e) {
       if (langMenuRef.current && !langMenuRef.current.contains(e.target)) setLangMenuOpen(false);
@@ -3753,38 +3757,47 @@ export default function BibleRun() {
           <h1 className="bg-gradient-to-b from-amber-200 via-amber-400 to-amber-600 bg-clip-text text-3xl font-bold tracking-wide text-transparent sm:text-5xl">
             BIBLE RUN
           </h1>
-          <div ref={langMenuRef} className="relative mt-2 inline-block font-sans text-xs">
-            <button
-              type="button"
-              onClick={() => setLangMenuOpen((o) => !o)}
-              aria-expanded={langMenuOpen}
-              aria-haspopup="listbox"
-              className="flex items-center gap-1.5 rounded-full border border-amber-700/50 bg-slate-900/60 px-3 py-1.5 text-amber-200 transition hover:border-amber-400"
-            >
+          {screen === "auth" ? (
+            <div ref={langMenuRef} className="relative mt-2 inline-block font-sans text-xs">
+              <button
+                type="button"
+                onClick={() => setLangMenuOpen((o) => !o)}
+                aria-expanded={langMenuOpen}
+                aria-haspopup="listbox"
+                className="flex items-center gap-1.5 rounded-full border border-amber-700/50 bg-slate-900/60 px-3 py-1.5 text-amber-200 transition hover:border-amber-400"
+              >
+                <FlagIcon code={LANG_TO_COUNTRY[lang]} />
+                {LANGUAGES.find((l) => l.code === lang)?.label}
+                <ChevronDown className={`h-3.5 w-3.5 transition-transform ${langMenuOpen ? "rotate-180" : ""}`} />
+              </button>
+              {langMenuOpen && (
+                <div
+                  role="listbox"
+                  className="absolute left-1/2 top-full z-30 mt-1.5 max-h-[50vh] w-52 -translate-x-1/2 overflow-y-auto rounded-xl border border-amber-700/50 bg-slate-950 py-1.5 shadow-2xl"
+                >
+                  {LANGUAGES.map((l) => (
+                    <button
+                      key={l.code}
+                      type="button"
+                      role="option"
+                      aria-selected={lang === l.code}
+                      onClick={() => changeLang(l.code)}
+                      className={`flex w-full items-center gap-2 px-3 py-1.5 text-left transition ${lang === l.code ? "bg-amber-500/20 text-amber-200" : "text-slate-300 hover:bg-amber-500/10 hover:text-amber-200"}`}
+                    >
+                      <FlagIcon code={LANG_TO_COUNTRY[l.code]} /> {l.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            // Språket väljs bara vid inloggning/registrering - på övriga skärmar
+            // visas det bara som en fast indikator, inget att klicka på.
+            <div className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-amber-800/30 px-3 py-1.5 font-sans text-xs text-amber-300/70">
               <FlagIcon code={LANG_TO_COUNTRY[lang]} />
               {LANGUAGES.find((l) => l.code === lang)?.label}
-              <ChevronDown className={`h-3.5 w-3.5 transition-transform ${langMenuOpen ? "rotate-180" : ""}`} />
-            </button>
-            {langMenuOpen && (
-              <div
-                role="listbox"
-                className="absolute left-1/2 top-full z-30 mt-1.5 max-h-[50vh] w-52 -translate-x-1/2 overflow-y-auto rounded-xl border border-amber-700/50 bg-slate-950 py-1.5 shadow-2xl"
-              >
-                {LANGUAGES.map((l) => (
-                  <button
-                    key={l.code}
-                    type="button"
-                    role="option"
-                    aria-selected={lang === l.code}
-                    onClick={() => changeLang(l.code)}
-                    className={`flex w-full items-center gap-2 px-3 py-1.5 text-left transition ${lang === l.code ? "bg-amber-500/20 text-amber-200" : "text-slate-300 hover:bg-amber-500/10 hover:text-amber-200"}`}
-                  >
-                    <FlagIcon code={LANG_TO_COUNTRY[l.code]} /> {l.label}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+            </div>
+          )}
         </header>
 
         <main className="flex w-full flex-1 flex-col items-center justify-center gap-6 lg:flex-row lg:items-center">
