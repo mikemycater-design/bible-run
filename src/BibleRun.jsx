@@ -17,12 +17,24 @@ function shuffled(arr) {
   return a;
 }
 
+// Slumpar bort alla utom en formulering per källa (samma bibelfaktum kan
+// finnas som flera omformulerade rader), så en omgång aldrig visar samma
+// händelse flera gånger med olika ordval.
+function dedupeBySource(pool) {
+  const bySource = new Map();
+  for (const q of shuffled(pool)) {
+    const key = q.source || q.id;
+    if (!bySource.has(key)) bySource.set(key, q);
+  }
+  return [...bySource.values()];
+}
+
 // Bygger en omgång som blir gradvis svårare: drar frågor jämnt ur varje
 // svårighetsnivå (slumpat inom nivån för variation mellan omgångar) och
 // sorterar sedan Grundnivå -> Medel -> Svår.
 function buildQuizSet(pool, size) {
   const tiers = {};
-  for (const q of pool) {
+  for (const q of dedupeBySource(pool)) {
     const key = q.difficulty in DIFFICULTY_ORDER ? q.difficulty : "Övrigt";
     (tiers[key] ??= []).push(q);
   }
@@ -3181,7 +3193,12 @@ export default function BibleRun() {
     setLoadingQuiz(true);
     setReadyError("");
     try {
-      const qs = await sb("questions?status=eq.approved&is_active=eq.true&order=sort_order.asc&select=*");
+      let qs = await sb(`questions?status=eq.approved&is_active=eq.true&lang=eq.${lang}&order=sort_order.asc&select=*`);
+      if (qs.length === 0 && lang !== "en") {
+        // Frågor finns bara på engelska och svenska hittills - hellre spela på
+        // engelska än att blockera spelet helt för de andra 22 språken.
+        qs = await sb("questions?status=eq.approved&is_active=eq.true&lang=eq.en&order=sort_order.asc&select=*");
+      }
       if (qs.length === 0) {
         setReadyError(t("ready.err_no_questions"));
         setScreen("ready");
@@ -3298,10 +3315,15 @@ export default function BibleRun() {
 
   useEffect(() => {
     if (screen !== "ready") return;
-    sb("questions?status=eq.approved&is_active=eq.true&select=id")
-      .then((rows) => setActiveQuestionCount(rows.length))
+    sb(`questions?status=eq.approved&is_active=eq.true&lang=eq.${lang}&select=id`)
+      .then((rows) => {
+        if (rows.length > 0 || lang === "en") return setActiveQuestionCount(rows.length);
+        return sb("questions?status=eq.approved&is_active=eq.true&lang=eq.en&select=id").then((enRows) =>
+          setActiveQuestionCount(enRows.length)
+        );
+      })
       .catch(() => setActiveQuestionCount(null));
-  }, [screen]);
+  }, [screen, lang]);
 
   const loadPlayerStats = useCallback(async (playerId) => {
     try {
