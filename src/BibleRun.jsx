@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Crown, BookOpen, Timer, Trophy, LogOut, Check, X, Medal, Eye, EyeOff, Mail, Lock, User, ShieldCheck, Globe2, ChevronRight } from "lucide-react";
+import { Crown, BookOpen, Timer, Trophy, LogOut, Check, X, Medal, Eye, EyeOff, Mail, Lock, User, ShieldCheck, Globe2, ChevronRight, ChevronDown } from "lucide-react";
 
 const SUPABASE_URL = "https://mhgnikriicjamwmxdjdg.supabase.co";
 const SUPABASE_KEY = "sb_publishable_qZQ3fm0Xs6uFGEMYg-RoSg_g-PktFsf";
@@ -2903,16 +2903,50 @@ export default function BibleRun() {
 
   const [player, setPlayer] = useState(loadPlayerSession);
   const [lang, setLang] = useState(loadLang);
+  const [langMenuOpen, setLangMenuOpen] = useState(false);
+  const langMenuRef = useRef(null);
   const t = useCallback((key, vars) => translate(lang, key, vars), [lang]);
 
   function changeLang(code) {
     setLang(code);
+    setLangMenuOpen(false);
     try {
       localStorage.setItem(LANG_KEY, code);
     } catch {
       // se kommentar i savePlayerSession
     }
   }
+
+  // Förvalt språk = kontots land, men bara om spelaren aldrig gjort ett eget
+  // val - annars respekteras alltid det egna valet.
+  useEffect(() => {
+    if (!player?.country_code) return;
+    try {
+      if (localStorage.getItem(LANG_KEY)) return;
+    } catch {
+      return;
+    }
+    const accountLang = COUNTRY_TO_LANG[player.country_code];
+    if (accountLang && TRANSLATIONS[accountLang]) setLang(accountLang);
+  }, [player?.id]);
+
+  useEffect(() => {
+    if (!langMenuOpen) return;
+    function handleClickOutside(e) {
+      if (langMenuRef.current && !langMenuRef.current.contains(e.target)) setLangMenuOpen(false);
+    }
+    function handleEscape(e) {
+      if (e.key === "Escape") setLangMenuOpen(false);
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [langMenuOpen]);
 
   const [questions, setQuestions] = useState([]);
   const [qIndex, setQIndex] = useState(0);
@@ -3711,26 +3745,45 @@ export default function BibleRun() {
 
   return (
     <Backdrop>
-      <div dir={RTL_LANGS.has(lang) ? "rtl" : "ltr"} className="mx-auto flex h-full max-h-screen w-full max-w-6xl flex-col overflow-y-auto px-5 py-6">
-        <header className="mb-6 flex-none text-center">
-          <div className="mb-2 flex justify-center">
-            <Crown className="h-9 w-9 text-amber-400" />
+      <div dir={RTL_LANGS.has(lang) ? "rtl" : "ltr"} className="mx-auto flex h-full max-h-[100dvh] w-full max-w-6xl flex-col overflow-y-auto px-5 py-6">
+        <header className="mb-4 flex-none text-center sm:mb-6">
+          <div className="mb-1 flex justify-center sm:mb-2">
+            <Crown className="h-7 w-7 text-amber-400 sm:h-9 sm:w-9" />
           </div>
-          <h1 className="bg-gradient-to-b from-amber-200 via-amber-400 to-amber-600 bg-clip-text text-5xl font-bold tracking-wide text-transparent">
+          <h1 className="bg-gradient-to-b from-amber-200 via-amber-400 to-amber-600 bg-clip-text text-3xl font-bold tracking-wide text-transparent sm:text-5xl">
             BIBLE RUN
           </h1>
-          <div className="mt-2 flex flex-wrap justify-center gap-1.5 font-sans text-xs">
-            {LANGUAGES.map((l) => (
-              <button
-                key={l.code}
-                type="button"
-                onClick={() => changeLang(l.code)}
-                aria-pressed={lang === l.code}
-                className={`flex items-center gap-1 rounded-full border px-2.5 py-1 transition ${lang === l.code ? "border-amber-400 bg-amber-500/20 text-amber-200" : "border-amber-800/40 text-amber-300/60 hover:text-amber-200"}`}
+          <div ref={langMenuRef} className="relative mt-2 inline-block font-sans text-xs">
+            <button
+              type="button"
+              onClick={() => setLangMenuOpen((o) => !o)}
+              aria-expanded={langMenuOpen}
+              aria-haspopup="listbox"
+              className="flex items-center gap-1.5 rounded-full border border-amber-700/50 bg-slate-900/60 px-3 py-1.5 text-amber-200 transition hover:border-amber-400"
+            >
+              <FlagIcon code={LANG_TO_COUNTRY[lang]} />
+              {LANGUAGES.find((l) => l.code === lang)?.label}
+              <ChevronDown className={`h-3.5 w-3.5 transition-transform ${langMenuOpen ? "rotate-180" : ""}`} />
+            </button>
+            {langMenuOpen && (
+              <div
+                role="listbox"
+                className="absolute left-1/2 top-full z-30 mt-1.5 max-h-[50vh] w-52 -translate-x-1/2 overflow-y-auto rounded-xl border border-amber-700/50 bg-slate-950 py-1.5 shadow-2xl"
               >
-                <FlagIcon code={LANG_TO_COUNTRY[l.code]} /> {l.label}
-              </button>
-            ))}
+                {LANGUAGES.map((l) => (
+                  <button
+                    key={l.code}
+                    type="button"
+                    role="option"
+                    aria-selected={lang === l.code}
+                    onClick={() => changeLang(l.code)}
+                    className={`flex w-full items-center gap-2 px-3 py-1.5 text-left transition ${lang === l.code ? "bg-amber-500/20 text-amber-200" : "text-slate-300 hover:bg-amber-500/10 hover:text-amber-200"}`}
+                  >
+                    <FlagIcon code={LANG_TO_COUNTRY[l.code]} /> {l.label}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </header>
 
