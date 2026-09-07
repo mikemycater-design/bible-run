@@ -3427,10 +3427,10 @@ export default function BibleRun() {
         sb("rpc/admin_get_stats", { method: "POST", body: JSON.stringify({ p_passcode: code }) }),
         sb("rpc/admin_list_messages", { method: "POST", body: JSON.stringify({ p_passcode: code }) }),
       ]);
-      setPendingQuestions(pending);
-      setPublishedQuestions(published);
-      setAdminStats(stats[0] || { pending: 0, approved: 0, active: 0, total: 0 });
-      setMessages(msgs);
+      setPendingQuestions(Array.isArray(pending) ? pending : []);
+      setPublishedQuestions(Array.isArray(published) ? published : []);
+      setAdminStats(stats?.[0] || { pending: 0, approved: 0, active: 0, total: 0 });
+      setMessages(Array.isArray(msgs) ? msgs : []);
     } catch (err) {
       setAdminError(err.message || "Kunde inte hämta frågor.");
     } finally {
