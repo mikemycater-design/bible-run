@@ -3772,13 +3772,24 @@ export default function BibleRun() {
   return (
     <Backdrop>
       <div dir={RTL_LANGS.has(lang) ? "rtl" : "ltr"} className="mx-auto flex h-full max-h-[100dvh] w-full max-w-6xl flex-col overflow-hidden px-5 py-6">
-        <header className="mb-4 flex-none text-center sm:mb-6">
-          <div className="mb-1 flex justify-center sm:mb-2">
-            <Crown className="h-7 w-7 text-amber-400 sm:h-9 sm:w-9" />
-          </div>
-          <h1 className="bg-gradient-to-b from-amber-200 via-amber-400 to-amber-600 bg-clip-text text-3xl font-bold tracking-wide text-transparent sm:text-5xl">
-            BIBLE RUN
-          </h1>
+        <header className={screen === "auth" ? "mb-4 flex-none text-center sm:mb-6" : "mb-3 flex flex-none items-center justify-center gap-2"}>
+          {screen === "auth" ? (
+            <>
+              <div className="mb-1 flex justify-center sm:mb-2">
+                <Crown className="h-7 w-7 text-amber-400 sm:h-9 sm:w-9" />
+              </div>
+              <h1 className="bg-gradient-to-b from-amber-200 via-amber-400 to-amber-600 bg-clip-text text-3xl font-bold tracking-wide text-transparent sm:text-5xl">
+                BIBLE RUN
+              </h1>
+            </>
+          ) : (
+            <>
+              <Crown className="h-4 w-4 flex-none text-amber-400" />
+              <span className="bg-gradient-to-b from-amber-200 via-amber-400 to-amber-600 bg-clip-text text-sm font-bold tracking-wide text-transparent">
+                BIBLE RUN
+              </span>
+            </>
+          )}
           {screen === "auth" ? (
             <div ref={langMenuRef} className="relative mt-2 inline-block font-sans text-xs">
               <button
@@ -3815,7 +3826,7 @@ export default function BibleRun() {
           ) : (
             // Språket väljs bara vid inloggning/registrering - på övriga skärmar
             // visas det bara som en fast indikator, inget att klicka på.
-            <div className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-amber-800/30 px-3 py-1.5 font-sans text-xs text-amber-300/70">
+            <div className="ml-1 inline-flex flex-none items-center gap-1 rounded-full border border-amber-800/30 px-2 py-0.5 font-sans text-[11px] text-amber-300/70">
               <FlagIcon code={LANG_TO_COUNTRY[lang]} />
               {LANGUAGES.find((l) => l.code === lang)?.label}
             </div>
