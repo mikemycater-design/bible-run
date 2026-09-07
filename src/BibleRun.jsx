@@ -3771,7 +3771,7 @@ export default function BibleRun() {
 
   return (
     <Backdrop>
-      <div dir={RTL_LANGS.has(lang) ? "rtl" : "ltr"} className="mx-auto flex h-full max-h-[100dvh] w-full max-w-6xl flex-col overflow-y-auto px-5 py-6">
+      <div dir={RTL_LANGS.has(lang) ? "rtl" : "ltr"} className="mx-auto flex h-full max-h-[100dvh] w-full max-w-6xl flex-col overflow-hidden px-5 py-6">
         <header className="mb-4 flex-none text-center sm:mb-6">
           <div className="mb-1 flex justify-center sm:mb-2">
             <Crown className="h-7 w-7 text-amber-400 sm:h-9 sm:w-9" />
@@ -3822,7 +3822,7 @@ export default function BibleRun() {
           )}
         </header>
 
-        <main className="flex w-full flex-1 flex-col items-center justify-center gap-6 lg:flex-row lg:items-center">
+        <main className="flex w-full min-h-0 flex-1 flex-col items-center gap-6 overflow-y-auto [justify-content:safe_center] lg:flex-row lg:items-center">
         <div className="w-full lg:max-w-[640px]">
 
         {screen === "resetPassword" && (
